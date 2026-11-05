@@ -1,0 +1,2040 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue]{hyperref}
+
+\setmainfont{DejaVu Sans}
+\setmonofont{NotoSansMono-Regular.ttf}[Scale=0.94]
+\definecolor{okgreen}{RGB}{0,110,60}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Leptonic compactness and the generalized $n$-dimensional law}
+\rhead{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\setlength{\parskip}{3pt}
+\setlength{\parindent}{0pt}
+
+\title{}
+\date{}
+\begin{document}
+\sloppy
+
+\begin{center}
+{\LARGE\bfseries Leptonic Compactness and the Generalized\\[2pt]
+$n$-Dimensional Velocity Law}\\[6pt]
+{\large A formal report on the \texttt{TheoreticalFramework} development}\\[10pt]
+{\small Generated 2026-11-05 13:39 UTC from the Lean sources by \texttt{paper/tools/build\_paper.py}}
+\end{center}
+
+\vspace{4pt}
+\begin{center}
+\begin{minipage}{0.92\textwidth}
+\small
+\textbf{Status:} \textbf{\textcolor{okgreen}{all checks passed}}.\\
+\textbf{Lean:} \texttt{4.33.1}; \textbf{Mathlib:} prebuilt at \texttt{/opt/mathlib}.\\
+\textbf{Sources:} 5 modules, 97 theorems, 42 definitions,
+3 structures.\\
+\textbf{Axioms used across the development:} \texttt{Classical.choice}, \texttt{Quot.sound}, \texttt{propext}.
+\end{minipage}
+\end{center}
+
+\vspace{6pt}
+\noindent\rule{\textwidth}{0.4pt}
+\section*{Summary}
+\addcontentsline{toc}{section}{Summary}
+
+Part of the muon's anomalous magnetic moment is attributed, in the framework
+under study, to an internal geometric compactness of massive leptons with
+effective radius $r_\ell = \kappa/m_\ell$.  Under the framework's plate ansatz
+($S$ proportional to $m^2$, separation $d = r_\ell$) the Casimir energy of the
+internal geometry is quintic in the mass, so the amplification between two
+leptons is the fifth power of their mass ratio:
+$E_{\mathrm{C},\mu}/E_{\mathrm{C},e} \approx (207)^5 \approx 4\times10^{11}$
+and $E_{\mathrm{C},\tau}/E_{\mathrm{C},e} \approx (3477)^5 \approx 5.1\times10^{17}$.
+Within the generalized $n$-dimensional kinematics with $n = 5$, the same quintic
+dependence fixes the ejection-velocity law
+$v_f^2 = v_2^2\,(m_\ell/m_0)^{n-2}$, hence amplification factors
+$(207)^3 \approx 8.9\times10^{6}$ and $(3477)^3 \approx 4.2\times10^{10}$.
+
+This report does three things.  First, it records the derivation of every
+scaling law as a Lean theorem, so that the fifth-power and cube appear as
+consequences rather than assertions, and so that the parameter-freedom of the
+ratios is visible.  Second, it recomputes every physical constant independently
+in Python and compares it with the interval Lean states --- including the three
+places where the source text's arithmetic does not survive that comparison.
+Third, it separates what the development proves from what the framework assumes
+and from what would need experiment.
+
+
+\section{Scope, and what is and is not proved}
+\label{sec:scope}
+
+The development is deliberately layered, and the layers should not be confused.
+
+\paragraph{(A) Proved mathematics.}
+The scaling laws, the amplification ratios, the exact arithmetic of the ejecta,
+the algebra of the regime structure, the continuity of the velocity map, and the
+thrust--power identity.  These are Lean theorems with no hypotheses beyond
+positivity of the masses and ratios, and they hold whatever one thinks of the
+physics.
+
+\paragraph{(B) Framework postulates.}
+Two assumptions are \emph{recorded} rather than derived, and the formalization
+makes that visible instead of hiding it.  The geometric ansatz
+($S$ proportional to $m^2$ with $d = r_\ell$, and $r_\ell = \kappa/m_\ell$) is a
+structure (\texttt{CasimirAnsatz}) carrying a free constant $\kappa$ and a free
+area coefficient; the theorem that matters is that the \emph{ratio} does not
+depend on either of them
+(\texttt{CasimirAnsatz.energy\_ratio\_parameter\_free}).  The velocity law
+$v_f^2 = v_2^2\,(m_\ell/m_0)^{n-2}$ is likewise a postulate of the framework's
+generalized kinematics, and the development proves its consequences
+(\texttt{velocity\_law}), not its truth.
+
+\paragraph{(C) Empirical claims.}
+That any of this describes the muon's actual internal structure, that muon--muon
+collisions eject particles at these speeds, and that a thruster can be built, are
+questions for experiment.  The development is explicit about the most important
+of these: \S\ref{sec:thrust} proves that the geometry fixes the exhaust velocity
+and the thrust-to-power ratio but says nothing about absolute thrust, and the
+claim that is left open is recorded as a proposition
+(\texttt{ThrustOptimizationConjecture}) that is never asserted.
+
+\paragraph{A tension internal to the source.}
+The framework attributes part of $a_\mu$ to a term scaling as $m^5$, whereas the
+measured generation-dependence of the anomalous moment goes as roughly
+$(m_\mu/m_e)^2 \approx 4.3\times10^{4}$, a factor $\approx 10^{7}$ smaller than
+$(207)^5$.  The attached notes say so themselves.  Nothing in this report
+resolves that: the formalization establishes that the framework's own arithmetic
+is correct, which is a different statement from the framework being right.  A
+Lean proof of a scaling law is not evidence for the postulate that produces it.
+
+
+\section{Core derivation: compactness and the fifth power}
+\label{sec:core}
+
+Write the effective radius as $r_\ell = \kappa/m_\ell$ and the Casimir energy of
+the internal cavity as $E_\mathrm{C} \propto -S/d^3$ with $d = r_\ell$.  Three
+theorems carry the derivation.
+
+\begin{enumerate}[leftmargin=*]
+\item \texttt{casimirEnergy\_eq\_quintic}: for $\kappa \neq 0$ and $m \neq 0$,
+  \[
+    E_\mathrm{C}(\kappa,m) \;=\; \frac{m^2}{(\kappa/m)^3} \;=\; \frac{m^5}{\kappa^3}.
+  \]
+\item \texttt{casimirEnergy\_ratio}: for non-zero masses,
+  \[
+    \frac{E_\mathrm{C}(\kappa,m_1)}{E_\mathrm{C}(\kappa,m_2)} \;=\; \left(\frac{m_1}{m_2}\right)^{5}.
+  \]
+\item \texttt{casimirEnergy\_ratio\_radii}: the same number read geometrically,
+  \[
+    \frac{E_\mathrm{C}(\kappa,m_1)}{E_\mathrm{C}(\kappa,m_2)} \;=\; \left(\frac{r_2}{r_1}\right)^{5},
+  \]
+  so ``compactness'' and ``vacuum coupling'' are one quantity, not two.
+\end{enumerate}
+
+The constant $\kappa$ cancels in the ratio.  That is the whole reason the
+framework can issue a number at all, and the formalization isolates it: in
+\texttt{CasimirAnsatz} the ratio is proved independent of $\kappa$, of the
+area coefficient, and of the overall Casimir prefactor, and the sign convention
+(the physical energy is negative, i.e.\ attractive) is shown not to affect it
+(\texttt{signedEnergy\_ratio}).
+
+The effective radius is strictly decreasing in the mass
+(\texttt{effRadius\_strictAnti}), which is the compactness statement in the form
+the rest of the development uses.
+
+
+\section{Casimir amplification: the numbers}
+\label{sec:casimir}
+
+With $m_\mu/m_e = 207$ and $m_\tau/m_e = 3477$ --- both checked against the
+tabulated masses to better than a quarter and a half unit respectively
+(\texttt{massRatioMuon\_consistent}, \texttt{massRatioTauon\_consistent}) ---
+the fifth-power law gives the following.  ``Lean'' is the interval the theorem
+\texttt{\dots\_order} states; ``recomputed'' is this script's independent
+evaluation; ``published'' is the source text.
+
+\begin{center}\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Quantity & Lean interval & Recomputed & Published \\
+\midrule
+$E_{\mathrm{C},\mu}/E_{\mathrm{C},e}$ & $[3.8 \times 10^{11},\ 4 \times 10^{11}]$ & $3.800596 \times 10^{11}$ & $4\times10^{11}$ \\
+$E_{\mathrm{C},\tau}/E_{\mathrm{C},e}$ & $[5.08 \times 10^{17},\ 5.1 \times 10^{17}]$ & $5.081869 \times 10^{17}$ & $5.1\times10^{17}$ \\
+$E_{\mathrm{C},\tau}/E_{\mathrm{C},\mu}$ & $[1.3 \times 10^{6},\ 1.34 \times 10^{6}]$ & $1.337124 \times 10^{6}$ & $1.3\times10^{6}$ \\
+
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two further structural facts are proved rather than computed.  The amplification
+is monotone in the mass ratio
+(\texttt{casimir\_amplification\_hierarchy}: $1 < (207)^5 < (3477)^5$), so the
+lepton generation hierarchy is a strict hierarchy of vacuum couplings.  And the
+equivalent magnetic field $B$, defined by $B^2 \propto E_\mathrm{C}/V$, carries
+exponent $3$ under the source's volume ansatz $V$ proportional to $S d^3$, and
+exponent $2$ under the literal plate volume $V = S d$.  Both are proved
+(\texttt{field\_amplification\_source}, \texttt{field\_amplification\_plate}).
+The exponent $3$ is the one the framework uses, and it is the same $3 = n-2$
+that appears in the velocity law --- which is worth stating precisely, because
+the coincidence is the framework's only argument for $n = 5$ beyond the quintic
+mass dependence itself.
+
+
+\section{The generalized $n$-dimensional framework}
+\label{sec:dimensions}
+
+The generalized dimension is not tuned: it is read off the quintic mass
+dependence of the anomalous-moment term.  In the development,
+
+\begin{verbatim}
+casimirMassExponent   = 5
+generalizedDimension  = casimirMassExponent
+velocityExponent      = generalizedDimension - 2  = 3
+\end{verbatim}
+
+\noindent so that \texttt{generalizedDimension\_eq\_five} and
+\texttt{velocityExponent\_eq\_three} are definitional, and the exponent of the
+velocity law is a consequence of the Casimir exponent rather than a choice made
+independently of it.
+
+The link to $g-2$ is made explicit rather than left in prose.  The framework's
+decomposition $a_\ell = a_{\mathrm{QED}} + a_{\mathrm{EW+had}} + a_{\mathrm{str}}$
+is the definition \texttt{anomalousMoment}, its structural part is
+\texttt{structuralTerm} $= C\,m^{\,n}$, and \texttt{structuralTerm\_quintic}
+records that this is $C\,m^5$ while
+\texttt{structuralTerm\_ratio} records that the structural term amplifies by
+$(m_1/m_2)^5$ --- the same number as the Casimir amplification.  That identity of
+exponents is the whole basis for reading $n = 5$ off the anomalous moment, so it
+is worth having as a theorem rather than a remark.
+
+The law is stated for arbitrary $n$ and then specialized.  With $r = m_\ell/m_0$,
+\[
+  v_f \;=\; \sqrt{v_2^2\, r^{\,n-2}},
+  \qquad\text{so}\qquad
+  v_f^2 \;=\; v_2^2\, r^{\,n-2}
+\]
+(\texttt{velocity\_law}), and for $v_2 \ge 0$ this is the paper's multiplicative
+form $v_f = v_2\sqrt{r^{\,n-2}}$ (\texttt{generalisedVelocity\_eq\_mul}).  At
+$n = 5$ both become the cube (\texttt{velocity\_law\_five}).  The map is
+monotone in $r$ and in $v_2$, vanishes at $v_2 = 0$, and is continuous in each
+variable.
+
+The framework's generalized units enter only as exponent bookkeeping, and that
+bookkeeping is proved exactly: with $[v_n] = \mathrm{m}^{2/n}/\mathrm{s}$ the mass
+exponent balances as $n \cdot (2/n) = 2$
+(\texttt{generalised\_unit\_exponents}) and the time exponent as
+$(n-2)+2 = n$ (\texttt{time\_exponent\_balance}).  The substitution rule
+$v_n (q\,dt_0)^{n-2} = v_2^2 q^{\,n-2}$ that links the two regimes is
+\texttt{scale\_substitution}.
+
+
+\section{Velocity scaling and amplification}
+\label{sec:velocity}
+
+The amplification factors are exact integers:
+$207^3 = 8\,869\,743$ and $3477^3 = 42\,035\,292\,333$
+(\texttt{muonAmplification\_eq}, \texttt{tauonAmplification\_eq}), i.e.\
+$\approx 8.9\times10^{6}$ and $\approx 4.2\times10^{10}$.  Their ratio is
+$(3477/207)^3 \approx 4.74\times10^{3}$.
+
+Because $v_f^2$ is an exact rational, every velocity is bounded without any
+rounding step: the development computes $v_f^2$ exactly and closes the interval
+with \texttt{generalisedVelocity\_bounds}.
+
+\begin{center}\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Quantity & Lean interval (m/s unless stated) & Recomputed & Published \\
+\midrule
+muonic ceiling $v_f$ & $[2.0682 \times 10^{7},\ 2.06821 \times 10^{7}]$ & $2.068202 \times 10^{7}$ & $\approx 20\,700$ km/s \\
+muonic ceiling (km/s) & $[20{,}680,\ 20{,}700]$ & $20{,}682$ & --- \\
+muonic $I_{\mathrm{sp}}$ (s) & $[2.108 \times 10^{6},\ 2.109 \times 10^{6}]$ & $2.108979 \times 10^{6}$ & $\approx 2\times10^{6}$ \\
+$I_{\mathrm{sp}}/I_{\mathrm{sp,Raptor}}$ & $[5{,}800,\ 5{,}820]$ & $5{,}810$ & $\approx 6000$ \\
+tauonic ceiling $v_f$ & $[4.2403 \times 10^{12},\ 4.2404 \times 10^{12}]$ & $4.240334 \times 10^{12}$ & $1.34\times10^{12}$ \\
+tauonic at entry & $[1.4237 \times 10^{9},\ 1.4239 \times 10^{9}]$ & $1.423785 \times 10^{9}$ & $1.42\times10^{9}$ \\
+tauonic at median & $[2.8475 \times 10^{10},\ 2.8476 \times 10^{10}]$ & $2.847571 \times 10^{10}$ & $9.0\times10^{10}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The ceiling is at the muonic collision maximum $v_2 = 25\,000$ km/h
+$= 62500/9 \approx 6\,944.4$ m/s (\texttt{collisionVelocityMuonMax\_eq}).
+
+\subsection*{The law over the whole input range}
+
+Values computed from the verified law $v_f^2 = v_2^2\, r^{3}$; only the endpoints
+are bounded inside Lean, the rest are consequences.
+
+\begin{center}\small
+\begin{tabular}{@{}rccc@{}}
+\toprule
+$v_2$ (km/h) & $v_2$ (m/s) & $v_f$ muonic (m/s) & $v_f$ tauonic (m/s) \\
+\midrule
+0 & $0$ & $0$ & $0$ \\
+2,500 & $694$ & $2.068202 \times 10^{6}$ & $1.423785 \times 10^{8}$ \\
+5,000 & $1{,}389$ & $4.136405 \times 10^{6}$ & $2.847571 \times 10^{8}$ \\
+10,000 & $2{,}778$ & $8.272809 \times 10^{6}$ & $5.695142 \times 10^{8}$ \\
+25,000 & $6{,}944$ & $2.068202 \times 10^{7}$ & $1.423785 \times 10^{9}$ \\
+50,000 & $13{,}889$ & $4.136405 \times 10^{7}$ & $2.847571 \times 10^{9}$ \\
+250,000 & $69{,}444$ & $2.068202 \times 10^{8}$ & $1.423785 \times 10^{10}$ \\
+1,000,000 & $2.777778 \times 10^{5}$ & $8.272809 \times 10^{8}$ & $5.695142 \times 10^{10}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Rows above $25\,000$ km/h lie outside the muonic input window and are
+tabulated only to show the law's behaviour over three decades; they are not
+outputs of a regime.  The muonic column above $\approx 10^{5}$ km/h is already
+superluminal, which is one reason the muonic window stops where it does.
+
+\subsection*{Where the source text diverges}
+
+Three published figures were checked against the exact law.  Two do not survive,
+and the pattern is the same in both: the source computes $v_f^2$ correctly and
+then takes its square root with the decimal exponent misplaced, which produces a
+factor $\sqrt{10} \approx 3.16$ on $v_f$ whenever the exponent of $v_f^2$ is odd.
+
+\begin{center}\small
+\begin{tabular}{@{}lcccl@{}}
+\toprule
+Quantity & Published & Verified & Ratio & Diagnosis \\
+\midrule
+tauonic ceiling & $1.34\times10^{12}$ & $4.2403\times10^{12}$ & $3.1644$
+  & $\sqrt{10}$ slip \\
+tauonic at median & $9.0\times10^{10}$ & $2.8476\times10^{10}$ & $0.3164$
+  & same slip, other direction \\
+tauonic at entry & $1.42\times10^{9}$ & $1.4238\times10^{9}$ & $1.003$
+  & correct (even exponent) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The slip is not asserted but localised: \texttt{source\_tauon\_max\_velocity\_underestimates}
+proves that the published figure squared is a factor in $[10.01, 10.02]$ below
+the verified one, and \texttt{source\_tauon\_max\_velocity\_factor} that the
+figure itself is low by a factor in $[3.164, 3.165]$.  The source's own
+intermediate, $v_f^2 \approx 1.80\times10^{25}$ m²/s², is right; only its root is
+wrong.  Both values are kept in the development
+(\texttt{sourceTauonMaxVelocity}) so that nothing is silently corrected.
+
+\subsection*{The speed limit}
+
+The muonic ceiling is subluminal (\texttt{muonMaxEjection\_subluminal}:
+$2.07\times10^{7} < c$), and so is the muonic collision window.  The tauonic
+ceiling is not (\texttt{tauonMaxEjection\_superluminal}:
+$c < 4.24\times10^{12}$ m/s).  The tauonic \emph{input} window is still
+subluminal (\texttt{tauonicInputMax\_subluminal}), so the framework's rejection
+of the Lorentz factor is required only to interpret the output.  This is the
+sharpest formal statement of the framework's distance from standard kinematics,
+and it is worth being explicit: a superluminal exhaust is not a technical
+difficulty to be engineered around, it is a consequence of the law as written.
+
+
+\section{The two regimes, and what continuity actually says}
+\label{sec:regimes}
+
+Both regimes are instances of one structure, \texttt{PropulsiveRegime}, carrying
+a mass ratio, an input window and the law-induced output.  Everything proved of
+the structure therefore applies to both.
+
+\begin{center}\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & muonic & tauonic \\
+\midrule
+Colliding leptons & $\mu^-/\mu^+$ & $\tau^-/\tau^+$ \\
+Mass ratio $m/m_e$ & 207 & 3477 \\
+Amplification $(m/m_e)^3$ & $8.87\times10^{6}$ & $4.20\times10^{10}$ \\
+Casimir amplification & $3.80\times10^{11}$ & $5.08\times10^{17}$ \\
+Input window $v_2$ & $]0,\ 25\,000\ \mathrm{km/h}]$ & $]25\,000\ \mathrm{km/h},\ v_f^{\max,\mu}]$ \\
+Output ceiling & $20\,682\ \mathrm{km/s}$ & $4.2403\times10^{12}\ \mathrm{m/s}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Continuity, stated correctly.}
+The source text says that ``the entry velocity of the tauonic domain coincides
+exactly with the maximum output velocity of the muonic domain''.  Those are two
+different coincidences, and the formalization separates them, because conflating
+them is how a boundary argument goes wrong:
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Adjacency} (\texttt{windows\_adjacent}): the tauonic window begins
+  at $25\,000$ km/h, which is the muonic \emph{input} ceiling.
+\item \textbf{The chain closes} (\texttt{chain\_closes}): the tauonic window's
+  \emph{upper} end is the muonic regime's maximum \emph{output}, $20\,682$ km/s.
+  So the second regime's input ceiling is the first regime's output ceiling ---
+  true of the upper end, not the entry.
+\end{enumerate}
+
+Together with \texttt{regimes\_tile} (the two windows cover one interval, with no
+gap and no overlap) and \texttt{tauonic\_window\_nested\_in\_output} (the tauonic
+window sits inside the muonic output range), this is the exact content of the
+nested-regime claim.  \texttt{regime\_continuity} collects the four facts and the
+continuity of the velocity map in $v_2$ in one statement.
+
+The boundary itself is a named object, \texttt{domainBoundary}, with
+\texttt{domainBoundary\_eq\_muonic\_output} (it *is* the muonic output ceiling)
+and \texttt{domainBoundary\_km\_per\_s} (it lies in $[20\,680, 20\,700]$ km/s,
+i.e.\ the source's $20\,700$ to the precision of the print).  It is subluminal
+(\texttt{domainBoundary\_subluminal}).
+
+Taking the unrounded value $v_f^{\max,\mu}$ as the tauonic input ceiling rather
+than the printed $20\,700$ km/s is what makes the match exact rather than
+approximate: the theorem \texttt{chain\_closes} is then true by construction,
+whereas with the rounded figure it would hold only to three significant digits.
+That choice is recorded in the definition of \texttt{tauonicInputMax} and
+justified in its docstring.
+
+\paragraph{Structural algebra.}
+The amplification $r \mapsto r^{\,n-2}$ is a multiplicative character
+(\texttt{amplification\_mul}), so the tauonic factor factors through the muonic
+one (\texttt{tauon\_amplification\_factors}):
+$3477^3 = 207^3 \cdot (3477/207)^3$.  This is why the regimes compose: a
+two-stage cascade multiplies, and the ordering of the regimes is forced by the
+lepton mass hierarchy rather than chosen (\texttt{regimes\_strictly\_ordered}).
+
+
+\section{Thrust: what the framework fixes, and the question it leaves open}
+\label{sec:thrust}
+
+The kinematics fix the exhaust velocity.  Momentum and energy balance then fix
+the thrust-to-power ratio exactly, and nothing else:
+
+\[
+  T = \dot m\, v_e, \qquad P = \tfrac12 \dot m\, v_e^2
+  \quad\Longrightarrow\quad
+  \frac{T}{P} = \frac{2}{v_e}
+\]
+
+\noindent proved as \texttt{thrust\_to\_power} for an arbitrary
+\texttt{ThrusterDesign}, and as \texttt{thrust\_eq\_power}: $T = 2P/v_e$.
+
+This has a consequence the source text does not mention and which the
+development makes unavoidable.  At the muonic exhaust velocity,
+$T/P \approx 9.67\times10^{-8}$ N/W
+(\texttt{muonic\_thrust\_to\_power\_bounds}), which is a factor
+$\approx 5.8\times10^{3}$ \emph{worse} than a Raptor engine
+(\texttt{muonic\_thrust\_to\_power\_shortfall}).  The specific-impulse gain and
+the thrust-per-watt loss are the same number, because both are $v_e$: raising
+$I_\mathrm{sp}$ from $363$ s to $2.1\times10^{6}$ s raises it by $5.8\times10^{3}$
+and lowers thrust per watt by $5.8\times10^{3}$.  Any muonic thruster trades one
+for the other; there is no regime in which the law gives both.
+
+What the framework does \emph{not} fix is absolute thrust.  This is proved, not
+asserted: \texttt{thrust\_not\_determined} shows that for any positive thrust
+$T$ there is a design at the muonic exhaust velocity delivering exactly $T$ ---
+thrust is bought with mass flow and power.  Consequently the engineering
+question is a question about power budgets, and is recorded as a proposition
+
+\begin{verbatim}
+ThrustOptimizationConjecture T P  :=
+  exists a design with exhaust velocity the muonic ceiling,
+  thrust T, and jet power at most P
+\end{verbatim}
+
+\noindent which the development never asserts.  It is shown to be non-vacuous
+(\texttt{thrust\_optimization\_satisfiable}) and to be settled by a power budget
+rather than by the geometry (\texttt{thrust\_optimization\_is\_empirical}).  That
+is the precise sense in which ``empirical thrust optimisations remain
+unproven'': the framework's contribution is the hyperbola $T = 2P/v_e$, and
+everything beyond it is engineering.
+
+
+\section{Verification}
+\label{sec:verification}
+
+\noindent\textbf{Overall:} \textcolor{okgreen}{\textbf{pass} --- sources elaborate, every constant agrees, no forbidden token, no non-standard axiom}
+
+\paragraph{1. Hygiene.}
+The sources are scanned for \texttt{sorry}, \texttt{admit}, \texttt{axiom}
+and \texttt{native\_decide} before anything is compiled; a hit aborts the
+build.  Hits: \textbf{none}.
+
+\paragraph{2. Elaboration.}
+Each module is elaborated with \texttt{lean} in dependency order.
+Total elaboration time: 13.06 s.
+
+\begin{center}\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Module & Status & Time & Result \\
+\midrule
+\texttt{Basic} & elaborated & 2.13 s & ok \\
+\texttt{Leptons} & elaborated & 2.12 s & ok \\
+\texttt{Dimensions} & elaborated & 2.08 s & ok \\
+\texttt{Velocity} & elaborated & 2.43 s & ok \\
+\texttt{Regimes} & elaborated & 2.42 s & ok \\
+\texttt{TheoreticalFramework} & elaborated & 1.88 s & ok \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{3. Axiom audit.}
+\texttt{\#print axioms} is run on every theorem and definition.  Grouped by
+the set of axioms each declaration depends on:
+
+\begin{center}\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+Axioms & Declarations \\
+\midrule
+none & 6 \\
+\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound} & 133 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent None of these is \texttt{sorryAx}, and no declaration carries a
+framework-specific axiom: the \texttt{propext} / \texttt{Classical.choice} /
+\texttt{Quot.sound} triple is Lean's standard classical base, used by the
+decision procedures, not by the mathematics of the framework.
+
+\paragraph{4. Independent recomputation.}
+Every numerical claim is recomputed in Python from its definition --- exact
+integers and \texttt{Fraction} where the quantity is rational --- and compared
+with the interval or numeral that Lean actually states.
+
+{\footnotesize
+\begin{longtable}{@{}p{0.325\textwidth}p{0.245\textwidth}p{0.175\textwidth}p{0.155\textwidth}p{0.05\textwidth}@{}}
+\toprule
+Theorem & Quantity & Lean & Recomputed & \\
+\midrule
+\endhead
+\texttt{\scriptsize collisionVelocityMuonMax\_\allowbreak{}bounds} & muonic collision ceiling v₂, m/s & $[6{,}944,\ 6{,}945]$ & $6{,}944$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize casimir\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}order} & casimir amplification (m\_\allowbreak{}μ/m\_\allowbreak{}e)⁵ & $[3.8 \times 10^{11},\ 4 \times 10^{11}]$ & $3.800596 \times 10^{11}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}order} & casimir amplification (m\_\allowbreak{}τ/m\_\allowbreak{}e)⁵ & $[5.08 \times 10^{17},\ 5.1 \times 10^{17}]$ & $5.081869 \times 10^{17}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}over\_\allowbreak{}muon} & (m\_\allowbreak{}τ/m\_\allowbreak{}μ)⁵ & $[1.3 \times 10^{6},\ 1.34 \times 10^{6}]$ & $1.337124 \times 10^{6}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonAmplification\_\allowbreak{}order} & velocity amplification 207³ & $[8.8 \times 10^{6},\ 8.9 \times 10^{6}]$ & $8.869743 \times 10^{6}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize tauonAmplification\_\allowbreak{}order} & velocity amplification 3477³ & $[4.2 \times 10^{10},\ 4.21 \times 10^{10}]$ & $4.203529 \times 10^{10}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize tauon\_\allowbreak{}over\_\allowbreak{}muon\_\allowbreak{}amplification} & 3477³/207³ & $[4{,}730,\ 4{,}740]$ & $4{,}739$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonMaxEjection\_\allowbreak{}bounds} & muonic ejection ceiling, m/s & $[2.0682 \times 10^{7},\ 2.06821 \times 10^{7}]$ & $2.068202 \times 10^{7}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonMaxEjection\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s} & muonic ejection ceiling, km/s & $[20{,}680,\ 20{,}700]$ & $20{,}682$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonSpecificImpulse\_\allowbreak{}bounds} & muonic specific impulse, s & $[2.108 \times 10^{6},\ 2.109 \times 10^{6}]$ & $2.108979 \times 10^{6}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonImpulse\_\allowbreak{}over\_\allowbreak{}raptor} & Isp(muonic)/Isp(Raptor) & $[5{,}800,\ 5{,}820]$ & $5{,}810$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize tauonMaxEjection\_\allowbreak{}bounds} & tauonic ejection ceiling, m/s & $[4.2403 \times 10^{12},\ 4.2404 \times 10^{12}]$ & $4.240334 \times 10^{12}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize tauonEntryEjection\_\allowbreak{}bounds} & tauonic ejection at entry, m/s & $[1.4237 \times 10^{9},\ 1.4239 \times 10^{9}]$ & $1.423785 \times 10^{9}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize tauonMedianEjection\_\allowbreak{}bounds} & tauonic ejection at median input, m/s & $[2.8475 \times 10^{10},\ 2.8476 \times 10^{10}]$ & $2.847571 \times 10^{10}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}underestimates} & (verified/source)² at the tauonic ceiling & $[10.01,\ 10.02]$ & $10.0136$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}factor} & verified/source at the tauonic ceiling & $[3.164,\ 3.165]$ & $3.1644$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonic\_\allowbreak{}thrust\_\allowbreak{}to\_\allowbreak{}power\_\allowbreak{}bounds} & muonic thrust per watt, N/W & $[9.6 \times 10^{-8},\ 9.7 \times 10^{-8}]$ & $9.670234 \times 10^{-8}$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonic\_\allowbreak{}thrust\_\allowbreak{}to\_\allowbreak{}power\_\allowbreak{}shortfall} & v\_\allowbreak{}e(muonic)/v\_\allowbreak{}e(Raptor) & $[5{,}800,\ 5{,}820]$ & $5{,}810$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize domainBoundary\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s} & domain boundary, km/s & $[20{,}680,\ 20{,}700]$ & $20{,}682$ & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize massRatioMuon\_\allowbreak{}pow\_\allowbreak{}five} & 207⁵ & exact numeral & \texttt{380059617807} & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize massRatioTauon\_\allowbreak{}pow\_\allowbreak{}five} & 3477⁵ & exact numeral & \texttt{508186885683281157} & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize muonAmplification\_\allowbreak{}eq} & 207³ & exact numeral & \texttt{8869743} & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize tauonAmplification\_\allowbreak{}eq} & 3477³ & exact numeral & \texttt{42035292333} & \textcolor{okgreen}{ok} \\
+\texttt{\scriptsize collisionVelocityMuonMax\_\allowbreak{}eq} & 25 000 km/h in m/s & exact numeral & \texttt{62500 / 9} & \textcolor{okgreen}{ok} \\
+\bottomrule
+\end{longtable}
+}
+
+\paragraph{5. Provenance.}
+Source digests (SHA-256, first 16 hex digits) at report time:
+
+\begin{center}\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+Module & Digest \\
+\midrule
+\texttt{Basic} & \texttt{b15febfb52f101a4} \\
+\texttt{Leptons} & \texttt{9ac624893fc8a88b} \\
+\texttt{Dimensions} & \texttt{490237f0691b40ab} \\
+\texttt{Velocity} & \texttt{d1716d3817282452} \\
+\texttt{Regimes} & \texttt{0ce9852307164c64} \\
+\texttt{TheoreticalFramework} & \texttt{bc1e1b637f57f99e} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Report generated 2026-11-05 13:39 UTC.
+
+
+\clearpage
+\appendix
+\section{Declaration index}
+\label{app:index}
+
+Every declaration of the development, with its docstring.  The list is produced
+by parsing the sources, so no declaration can be omitted by an oversight: if it
+compiles, it is here.
+
+\begin{center}\footnotesize
+\begin{longtable}{@{}p{0.36\textwidth}p{0.10\textwidth}p{0.44\textwidth}@{}}
+\toprule
+Name & Kind & Content \\
+\midrule
+\endhead
+\texttt{le\_\allowbreak{}of\_\allowbreak{}sq\_\allowbreak{}le\_\allowbreak{}sq} & \texttt{theorem} & \small Comparison of two non-negative reals through their squares.  This is the tool that turns an exactly computed \texttt{vf²} into a bound on \texttt{vf}. \\
+\texttt{effRadius} & \texttt{def} & \small Effective radius of a lepton, \texttt{r\_\allowbreak{}ℓ = κ / m\_\allowbreak{}ℓ}. \texttt{κ} has dimensions of mass × length.  The framework fixes \texttt{κ} by requiring that the electron's effective radius reproduces its classical radius, \texttt{r\_\allowbreak{}e = 2.8 × 10⁻¹⁵ m}; no numerical value is needed for the scaling laws, which are \texttt{κ}-free. \\
+\texttt{effRadius\_\allowbreak{}pos} & \texttt{theorem} & \small The effective radius of a positive-mass lepton is positive. \\
+\texttt{effRadius\_\allowbreak{}div} & \texttt{theorem} & \small Effective radii are inversely proportional to mass: the \emph{compaction} property that drives the whole framework. \\
+\texttt{effRadius\_\allowbreak{}strictAnti} & \texttt{theorem} & \small A heavier lepton is the more compact one. \\
+\texttt{casimirEnergy} & \texttt{def} & \small Casimir energy of the internal two-plate geometry, in units where the prefactor \texttt{π²ℏc/720} is absorbed into the area coefficient. \texttt{E\_\allowbreak{}C $\propto$ --- S / d³} with \texttt{S} the plate area and \texttt{d = r\_\allowbreak{}ℓ = κ/m} the plate separation.  The parallel-plate area ansatz \texttt{S $\propto$ m²} is the source's, and is recorded here explicitly by the \texttt{m\textasciicircum{}2} numerator. \\
+\texttt{casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic} & \texttt{theorem} & \small \textbf{Quintic law.}  Under the inverse-radius ansatz the Casimir energy of a lepton is proportional to the fifth power of its mass. \\
+\texttt{casimirEnergy\_\allowbreak{}ratio} & \texttt{theorem} & \small \textbf{Amplification ratio.}  Between two leptons, the Casimir amplification is the fifth power of their mass ratio.  The constant \texttt{κ} cancels. \\
+\texttt{casimirEnergy\_\allowbreak{}ratio\_\allowbreak{}radii} & \texttt{theorem} & \small The same amplification, read geometrically: it is the fifth power of the \emph{inverse} ratio of effective radii.  Compactness and vacuum coupling are two faces of one quantity. \\
+\texttt{CasimirAnsatz} & \texttt{structure} & \small The geometric ansatz of the framework: an internal plate geometry whose separation is the effective radius and whose area scales as the square of the mass. \\
+\texttt{CasimirAnsatz.plateArea} & \texttt{def} & \small Plate area of the internal geometry, \texttt{S = areaCoeff · m²}. \\
+\texttt{CasimirAnsatz.energy} & \texttt{def} & \small Casimir energy of the ansatz, \texttt{E = -S/d³} up to a positive prefactor; its magnitude is \texttt{S/d³}. \\
+\texttt{CasimirAnsatz.signedEnergy} & \texttt{def} & \small The signed (physical, attractive) Casimir energy, \texttt{E = -C · S/d³} with \texttt{C \textgreater{} 0}. \\
+\texttt{CasimirAnsatz.energy\_\allowbreak{}eq\_\allowbreak{}quintic} & \texttt{theorem} & \small  \\
+\texttt{CasimirAnsatz.energy\_\allowbreak{}ratio} & \texttt{theorem} & \small The amplification ratio of the ansatz is the fifth power of the mass ratio. \\
+\texttt{CasimirAnsatz.energy\_\allowbreak{}ratio\_\allowbreak{}parameter\_\allowbreak{}free} & \texttt{theorem} & \small \textbf{Parameter-freedom of the prediction.}  Two arbitrary choices of the framework's free constants — \texttt{κ}, the area coefficient, even the overall Casimir prefactor — give the same amplification ratio.  The ratio \texttt{(m₁/m₂)⁵} is thus a genuine prediction of the ansatz rather than a fit. \\
+\texttt{CasimirAnsatz.signedEnergy\_\allowbreak{}ratio} & \texttt{theorem} & \small The sign convention of the Casimir effect does not affect the amplification: the physical energy is negative (attractive), and the ratio is unchanged. \\
+\texttt{massElectronMeV} & \texttt{def} & \small Electron mass, MeV/c². \\
+\texttt{massMuonMeV} & \texttt{def} & \small Muon mass, MeV/c². \\
+\texttt{massTauonMeV} & \texttt{def} & \small Tauon mass, MeV/c². \\
+\texttt{massRatioMuon} & \texttt{def} & \small Muon-to-electron mass ratio, as used throughout the framework. \\
+\texttt{massRatioTauon} & \texttt{def} & \small Tauon-to-electron mass ratio, as used throughout the framework. \\
+\texttt{massRatioMuon\_\allowbreak{}pos} & \texttt{theorem} & \small  \\
+\texttt{massRatioTauon\_\allowbreak{}pos} & \texttt{theorem} & \small  \\
+\texttt{massRatioMuon\_\allowbreak{}consistent} & \texttt{theorem} & \small The integer ratio \texttt{207} reproduces the tabulated muon/electron mass ratio to better than a quarter of a unit. \\
+\texttt{massRatioTauon\_\allowbreak{}consistent} & \texttt{theorem} & \small The integer ratio \texttt{3477} reproduces the tabulated tauon/electron mass ratio to better than half a unit. \\
+\texttt{casimir\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}general} & \texttt{theorem} & \small \textbf{Muonic Casimir amplification}, in the form \texttt{E\_\allowbreak{}μ / E\_\allowbreak{}e = (m\_\allowbreak{}μ/m\_\allowbreak{}e)⁵}. \\
+\texttt{casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}general} & \texttt{theorem} & \small \textbf{Tauonic Casimir amplification}, in the form \texttt{E\_\allowbreak{}τ / E\_\allowbreak{}e = (m\_\allowbreak{}τ/m\_\allowbreak{}e)⁵}. \\
+\texttt{massRatioMuon\_\allowbreak{}pow\_\allowbreak{}five} & \texttt{theorem} & \small Exact value of the muonic amplification, \texttt{207⁵ = 380 059 617 807}. \\
+\texttt{massRatioTauon\_\allowbreak{}pow\_\allowbreak{}five} & \texttt{theorem} & \small Exact value of the tauonic amplification, \texttt{3477⁵ = 508 186 885 683 281 157}. \\
+\texttt{casimir\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}order} & \texttt{theorem} & \small \texttt{(207)⁵ ≈ 4 × 10¹¹}: the amplification lies between \texttt{3.8 × 10¹¹} and \texttt{4 × 10¹¹}. \\
+\texttt{casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}order} & \texttt{theorem} & \small \texttt{(3477)⁵ ≈ 5.1 × 10¹⁷}: the amplification lies between \texttt{5.08 × 10¹⁷} and \texttt{5.1 × 10¹⁷}. \\
+\texttt{casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}over\_\allowbreak{}muon} & \texttt{theorem} & \small The tauon amplifies the vacuum coupling by a further factor \texttt{(3477/207)⁵ ≈ 1.3 × 10⁶} over the muon. \\
+\texttt{casimir\_\allowbreak{}amplification\_\allowbreak{}hierarchy} & \texttt{theorem} & \small The amplification is monotone in the mass ratio: the lepton hierarchy \texttt{e \textless{} μ \textless{} τ} is a strict hierarchy of vacuum couplings. \\
+\texttt{fieldAmplificationSource} & \texttt{def} & \small Equivalent-field amplification under the source's volume ansatz \texttt{V $\propto$ S·d³}: \texttt{B $\propto$ m³}. \\
+\texttt{fieldAmplificationPlate} & \texttt{def} & \small Equivalent-field amplification under the literal plate volume \texttt{V = S·d}: \texttt{B $\propto$ m²}. \\
+\texttt{field\_\allowbreak{}amplification\_\allowbreak{}source} & \texttt{theorem} & \small Source ansatz: \texttt{B² $\propto$ E\_\allowbreak{}C / (S·d³) $\propto$ m⁶}, hence \texttt{B $\propto$ m³}. \\
+\texttt{field\_\allowbreak{}amplification\_\allowbreak{}plate} & \texttt{theorem} & \small Literal plate volume: \texttt{B² $\propto$ E\_\allowbreak{}C / (S·d) $\propto$ m⁴}, hence \texttt{B $\propto$ m²}. \\
+\texttt{field\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}order} & \texttt{theorem} & \small The source's field amplification for the muon, \texttt{(207)³ ≈ 9 × 10⁶}. \\
+\texttt{casimirMassExponent} & \texttt{def} & \small Exponent of the mass in the Casimir energy of the compactness ansatz. \\
+\texttt{generalizedDimension} & \texttt{def} & \small The generalized dimension, fixed by the quintic mass dependence: \texttt{n = 5}. \\
+\texttt{generalizedDimension\_\allowbreak{}eq\_\allowbreak{}five} & \texttt{theorem} & \small The generalized dimension is five. \\
+\texttt{structuralTerm} & \texttt{def} & \small The structural part of the anomalous moment, \texttt{a\_\allowbreak{}str = C · m\textasciicircum{}n}. \\
+\texttt{anomalousMoment} & \texttt{def} & \small The framework's decomposition \texttt{a\_\allowbreak{}ℓ = a\_\allowbreak{}QED + a\_\allowbreak{}EW+had + a\_\allowbreak{}str}. \\
+\texttt{structuralTerm\_\allowbreak{}quintic} & \texttt{theorem} & \small The structural term is quintic in the mass. \\
+\texttt{structuralTerm\_\allowbreak{}ratio} & \texttt{theorem} & \small The structural term amplifies between two leptons by the fifth power of the mass ratio: the same number as the Casimir amplification, which is the reason a single exponent serves both. \\
+\texttt{velocityExponent} & \texttt{def} & \small Exponent of the mass ratio in the velocity law, \texttt{n − 2}. \\
+\texttt{velocityExponent\_\allowbreak{}eq\_\allowbreak{}three} & \texttt{theorem} & \small With \texttt{n = 5} the velocity law carries the cube of the mass ratio. \\
+\texttt{velocityExponent\_\allowbreak{}eq} & \texttt{theorem} & \small The velocity exponent is \texttt{n − 2} for the framework's \texttt{n}. \\
+\texttt{generalised\_\allowbreak{}unit\_\allowbreak{}exponents} & \texttt{theorem} & \small Unit bookkeeping of \texttt{[vₙ] = m\textasciicircum{}(2/n)/s}: the mass exponent balances to \texttt{2}. \\
+\texttt{time\_\allowbreak{}exponent\_\allowbreak{}balance} & \texttt{theorem} & \small Unit bookkeeping of the time factor \texttt{dt₀\textasciicircum{}(n−2)}: the exponents close on \texttt{n}. \\
+\texttt{GeneralisedVelocityRelation} & \texttt{def} & \small The generalized-velocity relation \texttt{vₙⁿ · dt₀\textasciicircum{}(n−2) = v₂²} of the framework. \\
+\texttt{scale\_\allowbreak{}substitution} & \texttt{theorem} & \small \textbf{Scale substitution.}  Replacing the time scale by \texttt{q·dt₀} multiplies the relation by \texttt{q\textasciicircum{}(n−2)}, which is the framework's substitution rule \texttt{vₙ·(q·dt₀)\textasciicircum{}(n−2) = v₂²·q\textasciicircum{}(n−2)}; the parameter \texttt{q = m\_\allowbreak{}ℓ/m₀} is what links the muonic and tauonic regimes. \\
+\texttt{generalisedVelocity} & \texttt{def} & \small Ejection velocity of particles produced in lepton–lepton collisions in the generalized framework: the non-negative root of \texttt{vf² = v₂²·r\textasciicircum{}(n−2)}, where \texttt{r} is the mass ratio \texttt{m\_\allowbreak{}ℓ/m₀}. \\
+\texttt{velocity\_\allowbreak{}law} & \texttt{theorem} & \small \textbf{The velocity law}, for arbitrary generalized dimension \texttt{n}: \texttt{vf² = v₂² · (m\_\allowbreak{}ℓ/m₀)\textasciicircum{}(n−2)}. \\
+\texttt{generalisedVelocity\_\allowbreak{}eq\_\allowbreak{}mul} & \texttt{theorem} & \small The paper's form of the law, \texttt{vf = v₂ · √((m\_\allowbreak{}ℓ/m₀)\textasciicircum{}(n−2))}, agrees with the definition for non-negative input velocity. \\
+\texttt{generalisedVelocity\_\allowbreak{}nonneg} & \texttt{theorem} & \small Ejection velocities are non-negative. \\
+\texttt{generalisedVelocity\_\allowbreak{}bounds} & \texttt{theorem} & \small Two-sided bounds on an ejection velocity, from exact bounds on \texttt{vf²}. This is the workhorse that turns a computed square into a velocity interval without any rounding step. \\
+\texttt{velocity\_\allowbreak{}law\_\allowbreak{}five} & \texttt{theorem} & \small The velocity law at the framework's generalized dimension: \texttt{vf² = v₂² · (m\_\allowbreak{}ℓ/m₀)³}. \\
+\texttt{generalisedVelocity\_\allowbreak{}five\_\allowbreak{}eq\_\allowbreak{}mul} & \texttt{theorem} & \small The law's explicit linear-in-\texttt{v₂} form at \texttt{n = 5}: \texttt{vf = v₂·√(r³)}. \\
+\texttt{generalisedVelocity\_\allowbreak{}mono} & \texttt{theorem} & \small The ejection velocity grows with the lepton mass ratio: heavier collision partners eject faster. \\
+\texttt{generalisedVelocity\_\allowbreak{}mono\_\allowbreak{}v₂} & \texttt{theorem} & \small The ejection velocity grows with the collision velocity. \\
+\texttt{generalisedVelocity\_\allowbreak{}zero} & \texttt{theorem} & \small The ejection velocity vanishes with the collision velocity: no collisions, no propulsion. \\
+\texttt{kmhToMs} & \texttt{def} & \small Kilometres per hour to metres per second, \texttt{1 km/h = 5/18 m/s}. \\
+\texttt{kmhToMs\_\allowbreak{}eq} & \texttt{theorem} & \small The conversion agrees with the definitional \texttt{1000/3600}. \\
+\texttt{standardGravity} & \texttt{def} & \small Standard gravity, \texttt{g₀ = 9.80665 m/s²}, used to express specific impulse. \\
+\texttt{standardGravity\_\allowbreak{}pos} & \texttt{theorem} & \small  \\
+\texttt{speedOfLight} & \texttt{def} & \small Speed of light in vacuum, m/s. \\
+\texttt{specificImpulse} & \texttt{def} & \small Specific impulse, \texttt{Isp = v\_\allowbreak{}e / g₀}, in seconds. \\
+\texttt{raptorSpecificImpulse} & \texttt{def} & \small Vacuum specific impulse of a Raptor engine, seconds: the chemical benchmark of the source text. \\
+\texttt{collisionVelocityMuonMax} & \texttt{def} & \small Upper end of the muonic input window, \texttt{v₂ = 25 000 km/h}. \\
+\texttt{collisionVelocityMuonMax\_\allowbreak{}eq} & \texttt{theorem} & \small The muonic input ceiling in m/s. \\
+\texttt{collisionVelocityMuonMax\_\allowbreak{}bounds} & \texttt{theorem} & \small \texttt{25 000 km/h ≈ 6 944 m/s}. \\
+\texttt{muonAmplification} & \texttt{def} & \small Muonic amplification factor, \texttt{(m\_\allowbreak{}μ/m\_\allowbreak{}e)\textasciicircum{}(n−2)}. \\
+\texttt{tauonAmplification} & \texttt{def} & \small Tauonic amplification factor, \texttt{(m\_\allowbreak{}τ/m\_\allowbreak{}e)\textasciicircum{}(n−2)}. \\
+\texttt{muonAmplification\_\allowbreak{}eq} & \texttt{theorem} & \small \texttt{207³ = 8 869 743}. \\
+\texttt{tauonAmplification\_\allowbreak{}eq} & \texttt{theorem} & \small \texttt{3477³ = 42 035 292 333}. \\
+\texttt{muonAmplification\_\allowbreak{}order} & \texttt{theorem} & \small The muonic amplification is \texttt{(207)³ ≈ 8.9 × 10⁶}. \\
+\texttt{tauonAmplification\_\allowbreak{}order} & \texttt{theorem} & \small The tauonic amplification is \texttt{(3477)³ ≈ 4.2 × 10¹⁰}. \\
+\texttt{tauon\_\allowbreak{}over\_\allowbreak{}muon\_\allowbreak{}amplification} & \texttt{theorem} & \small The tauonic amplification exceeds the muonic one by \texttt{(3477/207)³ ≈ 4.74 × 10³}. \\
+\texttt{muonMaxEjection} & \texttt{def} & \small Maximum ejection velocity of the muonic regime, at \texttt{v₂ = 25 000 km/h}. \\
+\texttt{muonMaxEjection\_\allowbreak{}sq} & \texttt{theorem} & \small The ejection velocity obeys the law: \texttt{vf² = v₂² · 207³}. \\
+\texttt{muonMaxEjection\_\allowbreak{}bounds} & \texttt{theorem} & \small \texttt{vf ≈ 2.06820 × 10⁷ m/s} for the muonic ceiling. \\
+\texttt{muonMaxEjection\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s} & \texttt{theorem} & \small The source's \texttt{≈ 20 700 km/s}, proved as an interval in km/s. \\
+\texttt{muonMaxEjection\_\allowbreak{}subluminal} & \texttt{theorem} & \small The muonic ejection velocity is subluminal: the muonic regime is compatible with ordinary special relativity. \\
+\texttt{collisionVelocityMuonMax\_\allowbreak{}subluminal} & \texttt{theorem} & \small The muonic input window is subluminal as well. \\
+\texttt{muonSpecificImpulse\_\allowbreak{}bounds} & \texttt{theorem} & \small Specific impulse of the muonic ceiling, \texttt{Isp = v\_\allowbreak{}e/g₀ ≈ 2.109 × 10⁶ s}. \\
+\texttt{muonImpulse\_\allowbreak{}over\_\allowbreak{}raptor} & \texttt{theorem} & \small The muonic impulse exceeds the Raptor benchmark by a factor of about \texttt{5.8 × 10³}, i.e. "roughly 6 000 times" as the source states. \\
+\texttt{tauonicInputMax} & \texttt{def} & \small Input ceiling of the tauonic regime: the muonic regime's maximum ejection velocity, \texttt{≈ 20 682 km/s}.  Taking the unrounded value is what makes the two regimes exactly continuous. \\
+\texttt{tauonMaxEjection} & \texttt{def} & \small Maximum ejection velocity of the tauonic regime, at \texttt{v₂ = tauonicInputMax}. \\
+\texttt{tauonMaxEjection\_\allowbreak{}sq} & \texttt{theorem} & \small The tauonic ejection velocity obeys the law: \texttt{vf² = v₂² · 3477³}. \\
+\texttt{tauonMaxEjection\_\allowbreak{}bounds} & \texttt{theorem} & \small \texttt{vf ≈ 4.2403 × 10¹² m/s} for the tauonic ceiling. \\
+\texttt{tauonMaxEjection\_\allowbreak{}superluminal} & \texttt{theorem} & \small The tauonic ceiling is superluminal: the framework's rejection of the Lorentz factor is not optional decoration, it is what its own numbers require. \\
+\texttt{tauonicInputMax\_\allowbreak{}subluminal} & \texttt{theorem} & \small The tauonic input window is subluminal; only the output exceeds \texttt{c}. \\
+\texttt{sourceTauonMaxVelocity} & \texttt{def} & \small The tauonic ceiling ejection velocity as printed in the source text. \\
+\texttt{sourceTauonMedianVelocity} & \texttt{def} & \small The tauonic median ejection velocity as printed in the source text. \\
+\texttt{source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}underestimates} & \texttt{theorem} & \small The source figure, squared, falls short of the law by a factor of \texttt{10.01}: the printed value is \texttt{√10} too small. \\
+\texttt{source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}factor} & \texttt{theorem} & \small Consequently the source figure underestimates the ejection velocity itself by the factor \texttt{√10 ≈ 3.164}. \\
+\texttt{tauonEntryEjection} & \texttt{def} & \small Tauonic ejection velocity at the entry velocity of the tauonic window. \\
+\texttt{tauonEntryEjection\_\allowbreak{}bounds} & \texttt{theorem} & \small \texttt{vf ≈ 1.4238 × 10⁹ m/s} at the tauonic entry velocity: the source's \texttt{1.42 × 10⁹} is correct here, because this \texttt{vf²} happens to carry an even decimal exponent. \\
+\texttt{tauonMedianEjection} & \texttt{def} & \small Tauonic ejection velocity at a median input of \texttt{500 000 km/h}. \\
+\texttt{tauonMedianEjection\_\allowbreak{}bounds} & \texttt{theorem} & \small \texttt{vf ≈ 2.8477 × 10¹⁰ m/s} at the median input — not the \texttt{9.0 × 10¹⁰} printed in the source, which carries the same \texttt{√10} slip. \\
+\texttt{amplification\_\allowbreak{}mul} & \texttt{theorem} & \small The amplification factor is multiplicative in the mass ratio: chaining two mass scales multiplies the amplification.  This is what makes the regimes composable rather than merely analogous. \\
+\texttt{amplification\_\allowbreak{}strictMono} & \texttt{theorem} & \small The amplification is strictly increasing in the mass ratio on the positive axis: heavier collision partners amplify more. \\
+\texttt{tauon\_\allowbreak{}amplification\_\allowbreak{}factors} & \texttt{theorem} & \small The tauonic amplification is the muonic one times the amplification of the residual ratio \texttt{m\_\allowbreak{}τ/m\_\allowbreak{}μ}: \texttt{3477³ = 207³ · (3477/207)³}. \\
+\texttt{generalisedVelocity\_\allowbreak{}ge\_\allowbreak{}input} & \texttt{theorem} & \small For a mass ratio at least one, the ejection velocity is at least the collision velocity.  This is what lets the tauonic window start where the muonic window ends. \\
+\texttt{one\_\allowbreak{}le\_\allowbreak{}massRatioMuon} & \texttt{theorem} & \small  \\
+\texttt{one\_\allowbreak{}le\_\allowbreak{}massRatioTauon} & \texttt{theorem} & \small  \\
+\texttt{PropulsiveRegime} & \texttt{structure} & \small A propulsive regime of the framework: a charged-lepton mass ratio, the window of admissible collision velocities, and the law-induced quantities derived from them. \\
+\texttt{PropulsiveRegime.amplification} & \texttt{def} & \small Amplification factor of the regime, \texttt{(m\_\allowbreak{}ℓ/m\_\allowbreak{}e)\textasciicircum{}(n−2)}. \\
+\texttt{PropulsiveRegime.maxOutput} & \texttt{def} & \small Maximum ejection velocity of the regime, at the top of its input window. \\
+\texttt{PropulsiveRegime.window} & \texttt{def} & \small The input window as a set. \\
+\texttt{PropulsiveRegime.maxOutput\_\allowbreak{}sq} & \texttt{theorem} & \small The regime's maximum output obeys the velocity law. \\
+\texttt{PropulsiveRegime.inputUpper\_\allowbreak{}le\_\allowbreak{}maxOutput} & \texttt{theorem} & \small The maximum output is at least the input ceiling. \\
+\texttt{PropulsiveRegime.continuous\_\allowbreak{}maxOutput} & \texttt{theorem} & \small Within a regime the velocity law is continuous in the collision velocity. \\
+\texttt{PropulsiveRegime.continuous\_\allowbreak{}in\_\allowbreak{}massRatio} & \texttt{theorem} & \small Within a regime the velocity law is continuous in the mass ratio. \\
+\texttt{muonicRegime} & \texttt{def} & \small \textbf{The muonic regime.}  Muon–muon collisions, mass ratio \texttt{207}, collision velocities up to \texttt{25 000 km/h}; replaces chemical propellants. \\
+\texttt{tauonicRegime} & \texttt{def} & \small \textbf{The tauonic regime.}  Tauon–tauon collisions, mass ratio \texttt{3477}, input window from the muonic ceiling up to the muonic regime's output ceiling. \\
+\texttt{muonicRegime\_\allowbreak{}amplification} & \texttt{theorem} & \small The muonic amplification, through the structure. \\
+\texttt{tauonicRegime\_\allowbreak{}amplification} & \texttt{theorem} & \small The tauonic amplification, through the structure. \\
+\texttt{regimes\_\allowbreak{}strictly\_\allowbreak{}ordered} & \texttt{theorem} & \small The regime hierarchy is strict: the tauonic amplification exceeds the muonic one by \texttt{≈ 4.74 × 10³}. \\
+\texttt{muonicRegime\_\allowbreak{}maxOutput} & \texttt{theorem} & \small The muonic regime's output ceiling, through the structure. \\
+\texttt{tauonicRegime\_\allowbreak{}maxOutput} & \texttt{theorem} & \small The tauonic regime's output ceiling, through the structure. \\
+\texttt{windows\_\allowbreak{}adjacent} & \texttt{theorem} & \small \textbf{Adjacency.}  The tauonic window begins exactly where the muonic window ends: \texttt{25 000 km/h}, the muonic collision ceiling. \\
+\texttt{chain\_\allowbreak{}closes} & \texttt{theorem} & \small \textbf{The chain closes.}  The upper end of the tauonic \emph{input} window is the muonic regime's maximum \emph{output}.  This is the boundary the framework calls \texttt{v₂ = 20 700 km/s}, and taking the unrounded value is what makes the match exact rather than approximate. \\
+\texttt{regimes\_\allowbreak{}tile} & \texttt{theorem} & \small \textbf{Tiling.}  The two input windows cover one interval with no gap and no overlap. \\
+\texttt{tauonic\_\allowbreak{}window\_\allowbreak{}nested\_\allowbreak{}in\_\allowbreak{}output} & \texttt{theorem} & \small \textbf{Nesting.}  The tauonic window lies inside the muonic regime's output range: the second regime's inputs are the first regime's reachable outputs. \\
+\texttt{domainBoundary} & \texttt{def} & \small \textbf{The domain boundary.}  The boundary of the source's §8.2, \texttt{v₂ = 20 700 km/s}, is the tauonic input ceiling, and it is the muonic output ceiling unrounded. \\
+\texttt{domainBoundary\_\allowbreak{}eq\_\allowbreak{}muonic\_\allowbreak{}output} & \texttt{theorem} & \small The boundary is the muonic regime's maximum output. \\
+\texttt{domainBoundary\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s} & \texttt{theorem} & \small The boundary is the muonic ejection ceiling, hence \texttt{≈ 20 700 km/s}. \\
+\texttt{domainBoundary\_\allowbreak{}subluminal} & \texttt{theorem} & \small The boundary itself is subluminal; it is the tauonic \emph{output} that exceeds \texttt{c}, not the input ceiling that defines the hand-off. \\
+\texttt{regime\_\allowbreak{}continuity} & \texttt{theorem} & \small \textbf{Continuity of the two-regime structure}, collected in one statement: the windows are adjacent, the chain closes on the muonic output ceiling, they tile an interval, and the law is continuous in the collision velocity throughout. \\
+\texttt{ThrusterDesign} & \texttt{structure} & \small A thruster design obeying the framework's momentum and energy balance. \\
+\texttt{raptorExhaustVelocity} & \texttt{def} & \small Vacuum exhaust velocity of the Raptor benchmark. \\
+\texttt{thrust\_\allowbreak{}to\_\allowbreak{}power} & \texttt{theorem} & \small \textbf{The thrust–power tradeoff.}  For any design, \texttt{T/P = 2/v\_\allowbreak{}e} exactly.  High specific impulse costs thrust per watt, without exception. \\
+\texttt{thrust\_\allowbreak{}eq\_\allowbreak{}power} & \texttt{theorem} & \small Thrust in terms of jet power and exhaust velocity. \\
+\texttt{muonic\_\allowbreak{}thrust\_\allowbreak{}to\_\allowbreak{}power\_\allowbreak{}bounds} & \texttt{theorem} & \small At the muonic ceiling, thrust per watt is \texttt{≈ 9.67 × 10⁻⁸ N/W}. \\
+\texttt{muonic\_\allowbreak{}thrust\_\allowbreak{}to\_\allowbreak{}power\_\allowbreak{}shortfall} & \texttt{theorem} & \small The muonic exhaust velocity is \texttt{≈ 5.8 × 10³} times the Raptor exhaust velocity, so its thrust per watt is that many times \emph{worse}: the specific-impulse gain and the thrust-per-watt loss are the same number. \\
+\texttt{thrust\_\allowbreak{}not\_\allowbreak{}determined} & \texttt{theorem} & \small \textbf{Thrust is not determined by the geometry.}  At the exhaust velocity the leptonic kinematics fix, any positive thrust is attainable by a suitable design: thrust is bought with mass flow and power, not with the velocity law. \\
+\texttt{ThrustOptimizationConjecture} & \texttt{def} & \small The engineering question the framework leaves open: at the exhaust velocity the geometry fixes, is there a design reaching a thrust target \texttt{T} within a power budget \texttt{P}?  Nothing in the geometric development decides it — see \texttt{thrust\_\allowbreak{}not\_\allowbreak{}determined} — so it is recorded, not proved. \\
+\texttt{thrust\_\allowbreak{}optimization\_\allowbreak{}satisfiable} & \texttt{theorem} & \small The conjecture is not vacuous: a large enough power budget always suffices, because the thrust–power relation is a hyperbola and nothing else constrains it. \\
+\texttt{thrust\_\allowbreak{}optimization\_\allowbreak{}is\_\allowbreak{}empirical} & \texttt{theorem} & \small Consequently the thrust question is \emph{empirical}, not geometric: the framework fixes \texttt{v\_\allowbreak{}e} and hence \texttt{T/P}, and leaves \texttt{(T, P)} free along that hyperbola.  This is the formal statement of "empirical thrust optimisations remain unproven". \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+
+\clearpage
+\section{The verified sources}
+\label{app:sources}
+
+The complete development, as elaborated by Lean.  Digests are in
+\S\ref{sec:verification}.
+
+
+\subsection*{\texttt{TheoreticalFramework/Basic.lean}}
+\vspace{2pt}
+{\ttfamily\scriptsize\setlength{\parindent}{0pt}\setlength{\baselineskip}{7.6pt}\setlength{\parskip}{0pt}\raggedright\obeyspaces\obeylines
+/-
+\# TheoreticalFramework.Basic
+\mbox{}
+Core derivations of the leptonic-compactness framework.
+\mbox{}
+The model under study attributes part of the anomalous magnetic moment of a
+massive lepton to an *internal geometric compactness*: a lepton of mass `m`
+carries an effective radius
+\mbox{}
+  `r\_\allowbreak{}ℓ = κ / m`,
+\mbox{}
+with `κ` a fixed constant of the framework (dimensions of mass × length).  The
+internal geometry is modelled, following the source text, as a pair of plates
+whose separation is `d = r\_\allowbreak{}ℓ` and whose area scales with the square of the mass,
+`S $\propto$ m²`.  The Casimir energy of such a cavity scales as
+\mbox{}
+  `E\_\allowbreak{}C $\propto$ - S / d³`,
+\mbox{}
+hence as `- m² / r\_\allowbreak{}ℓ³ = - m⁵ / κ³`.
+\mbox{}
+The mathematical content proved here is the scaling: the Casimir energy of a
+lepton is quintic in its mass, and therefore the amplification ratio between two
+leptons depends only on the ratio of their masses — not on `κ`, not on the area
+coefficient, and not on the overall Casimir constant.  That parameter-freedom is
+what lets the framework issue a numerical prediction, and it is the reason the
+derivation can be checked exactly rather than up to an unknown prefactor.
+\mbox{}
+The geometric *ansatz* itself (`S $\propto$ m²`, `d = r\_\allowbreak{}ℓ`) is recorded as an explicit
+model assumption in `CasimirAnsatz`, not asserted as a derived fact.
+-/
+import Mathlib
+\mbox{}
+namespace TheoreticalFramework
+\mbox{}
+noncomputable section
+\mbox{}
+/-- Comparison of two non-negative reals through their squares.  This is the
+tool that turns an exactly computed `vf²` into a bound on `vf`. -/
+theorem le\_\allowbreak{}of\_\allowbreak{}sq\_\allowbreak{}le\_\allowbreak{}sq \{a b : ℝ\} (ha : 0 ≤ a) (hb : 0 ≤ b) (h : a \textasciicircum{} 2 ≤ b \textasciicircum{} 2) : a ≤ b := by
+  have habs := sq\_\allowbreak{}le\_\allowbreak{}sq.mp h
+  rwa [abs\_\allowbreak{}of\_\allowbreak{}nonneg ha, abs\_\allowbreak{}of\_\allowbreak{}nonneg hb] at habs
+\mbox{}
+/-! \#\# Effective radius -/
+\mbox{}
+/-- Effective radius of a lepton, `r\_\allowbreak{}ℓ = κ / m\_\allowbreak{}ℓ`.
+\mbox{}
+`κ` has dimensions of mass × length.  The framework fixes `κ` by requiring that
+the electron's effective radius reproduces its classical radius, `r\_\allowbreak{}e = 2.8 × 10⁻¹⁵ m`;
+no numerical value is needed for the scaling laws, which are `κ`-free. -/
+def effRadius (κ m : ℝ) : ℝ := κ / m
+\mbox{}
+/-- The effective radius of a positive-mass lepton is positive. -/
+theorem effRadius\_\allowbreak{}pos \{κ m : ℝ\} (hκ : 0 \textless{} κ) (hm : 0 \textless{} m) : 0 \textless{} effRadius κ m :=
+  div\_\allowbreak{}pos hκ hm
+\mbox{}
+/-- Effective radii are inversely proportional to mass: the *compaction* property
+that drives the whole framework. -/
+theorem effRadius\_\allowbreak{}div \{κ m₁ m₂ : ℝ\} (hκ : κ ≠ 0) (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    effRadius κ m₁ / effRadius κ m₂ = m₂ / m₁ := by
+  unfold effRadius
+  field\_\allowbreak{}simp
+\mbox{}
+/-- A heavier lepton is the more compact one. -/
+theorem effRadius\_\allowbreak{}strictAnti \{κ : ℝ\} (hκ : 0 \textless{} κ) :
+    StrictAntiOn (effRadius κ) (Set.Ioi 0) := by
+  intro m₁ hm₁ m₂ hm₂ hlt
+  simp only [Set.mem\_\allowbreak{}Ioi] at hm₁ hm₂
+  exact div\_\allowbreak{}lt\_\allowbreak{}div\_\allowbreak{}of\_\allowbreak{}pos\_\allowbreak{}left hκ hm₁ hlt
+\mbox{}
+/-! \#\# Casimir energy of the internal geometry -/
+\mbox{}
+/-- Casimir energy of the internal two-plate geometry, in units where the
+prefactor `π²ℏc/720` is absorbed into the area coefficient.
+\mbox{}
+`E\_\allowbreak{}C $\propto$ - S / d³` with `S` the plate area and `d = r\_\allowbreak{}ℓ = κ/m` the plate
+separation.  The parallel-plate area ansatz `S $\propto$ m²` is the source's, and is
+recorded here explicitly by the `m\textasciicircum{}2` numerator. -/
+def casimirEnergy (κ m : ℝ) : ℝ := m \textasciicircum{} 2 / (effRadius κ m) \textasciicircum{} 3
+\mbox{}
+/-- **Quintic law.**  Under the inverse-radius ansatz the Casimir energy of a
+lepton is proportional to the fifth power of its mass. -/
+theorem casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic \{κ m : ℝ\} (hκ : κ ≠ 0) (hm : m ≠ 0) :
+    casimirEnergy κ m = m \textasciicircum{} 5 / κ \textasciicircum{} 3 := by
+  unfold casimirEnergy effRadius
+  field\_\allowbreak{}simp
+\mbox{}
+/-- **Amplification ratio.**  Between two leptons, the Casimir amplification is
+the fifth power of their mass ratio.  The constant `κ` cancels. -/
+theorem casimirEnergy\_\allowbreak{}ratio \{κ : ℝ\} (hκ : κ ≠ 0) \{m₁ m₂ : ℝ\} (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    casimirEnergy κ m₁ / casimirEnergy κ m₂ = (m₁ / m₂) \textasciicircum{} 5 := by
+  rw [casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic hκ h₁, casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic hκ h₂]
+  field\_\allowbreak{}simp
+\mbox{}
+/-- The same amplification, read geometrically: it is the fifth power of the
+*inverse* ratio of effective radii.  Compactness and vacuum coupling are two
+faces of one quantity. -/
+theorem casimirEnergy\_\allowbreak{}ratio\_\allowbreak{}radii \{κ m₁ m₂ : ℝ\} (hκ : κ ≠ 0) (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    casimirEnergy κ m₁ / casimirEnergy κ m₂ = (effRadius κ m₂ / effRadius κ m₁) \textasciicircum{} 5 := by
+  rw [casimirEnergy\_\allowbreak{}ratio hκ h₁ h₂, effRadius\_\allowbreak{}div hκ h₂ h₁]
+\mbox{}
+/-! \#\# The geometric ansatz as an explicit structure
+\mbox{}
+Isolating the ansatz makes two things visible: which quantities are free, and
+that the amplification ratio does not depend on any of them.
+-/
+\mbox{}
+/-- The geometric ansatz of the framework: an internal plate geometry whose
+separation is the effective radius and whose area scales as the square of the
+mass. -/
+structure CasimirAnsatz where
+  /-- Constant of the inverse-radius law, `r\_\allowbreak{}ℓ = κ/m\_\allowbreak{}ℓ`. -/
+  kappa : ℝ
+  kappa\_\allowbreak{}pos : 0 \textless{} kappa
+  /-- Coefficient of the plate-area ansatz, `S = areaCoeff · m²`. -/
+  areaCoeff : ℝ
+  areaCoeff\_\allowbreak{}pos : 0 \textless{} areaCoeff
+\mbox{}
+namespace CasimirAnsatz
+\mbox{}
+/-- Plate area of the internal geometry, `S = areaCoeff · m²`. -/
+def plateArea (A : CasimirAnsatz) (m : ℝ) : ℝ := A.areaCoeff * m \textasciicircum{} 2
+\mbox{}
+/-- Casimir energy of the ansatz, `E = -S/d³` up to a positive prefactor;
+its magnitude is `S/d³`. -/
+def energy (A : CasimirAnsatz) (m : ℝ) : ℝ := A.plateArea m / (effRadius A.kappa m) \textasciicircum{} 3
+\mbox{}
+/-- The signed (physical, attractive) Casimir energy, `E = -C · S/d³` with `C \textgreater{} 0`. -/
+def signedEnergy (A : CasimirAnsatz) (C m : ℝ) : ℝ := -C * A.energy m
+\mbox{}
+theorem energy\_\allowbreak{}eq\_\allowbreak{}quintic (A : CasimirAnsatz) \{m : ℝ\} (hm : m ≠ 0) :
+    A.energy m = A.areaCoeff * m \textasciicircum{} 5 / A.kappa \textasciicircum{} 3 := by
+  unfold energy plateArea effRadius
+  field\_\allowbreak{}simp [A.kappa\_\allowbreak{}pos.ne', A.areaCoeff\_\allowbreak{}pos.ne',
+    mul\_\allowbreak{}ne\_\allowbreak{}zero A.areaCoeff\_\allowbreak{}pos.ne' A.kappa\_\allowbreak{}pos.ne']
+\mbox{}
+/-- The amplification ratio of the ansatz is the fifth power of the mass ratio. -/
+theorem energy\_\allowbreak{}ratio (A : CasimirAnsatz) \{m₁ m₂ : ℝ\} (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    A.energy m₁ / A.energy m₂ = (m₁ / m₂) \textasciicircum{} 5 := by
+  rw [energy\_\allowbreak{}eq\_\allowbreak{}quintic A h₁, energy\_\allowbreak{}eq\_\allowbreak{}quintic A h₂]
+  field\_\allowbreak{}simp [A.kappa\_\allowbreak{}pos.ne', A.areaCoeff\_\allowbreak{}pos.ne', pow\_\allowbreak{}ne\_\allowbreak{}zero 5 h₁, pow\_\allowbreak{}ne\_\allowbreak{}zero 5 h₂]
+\mbox{}
+/-- **Parameter-freedom of the prediction.**  Two arbitrary choices of the
+framework's free constants — `κ`, the area coefficient, even the overall Casimir
+prefactor — give the same amplification ratio.  The ratio `(m₁/m₂)⁵` is thus a
+genuine prediction of the ansatz rather than a fit. -/
+theorem energy\_\allowbreak{}ratio\_\allowbreak{}parameter\_\allowbreak{}free (A A' : CasimirAnsatz) \{m₁ m₂ : ℝ\}
+    (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    A.energy m₁ / A.energy m₂ = A'.energy m₁ / A'.energy m₂ := by
+  rw [energy\_\allowbreak{}ratio A h₁ h₂, energy\_\allowbreak{}ratio A' h₁ h₂]
+\mbox{}
+/-- The sign convention of the Casimir effect does not affect the amplification:
+the physical energy is negative (attractive), and the ratio is unchanged. -/
+theorem signedEnergy\_\allowbreak{}ratio (A : CasimirAnsatz) \{C m₁ m₂ : ℝ\} (hC : C ≠ 0)
+    (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    A.signedEnergy C m₁ / A.signedEnergy C m₂ = (m₁ / m₂) \textasciicircum{} 5 := by
+  unfold signedEnergy
+  rw [neg\_\allowbreak{}mul, neg\_\allowbreak{}mul, neg\_\allowbreak{}div\_\allowbreak{}neg\_\allowbreak{}eq, mul\_\allowbreak{}div\_\allowbreak{}mul\_\allowbreak{}left \_\allowbreak{} \_\allowbreak{} hC, energy\_\allowbreak{}ratio A h₁ h₂]
+\mbox{}
+end CasimirAnsatz
+\mbox{}
+end
+\mbox{}
+end TheoreticalFramework
+\mbox{}
+}
+
+\clearpage
+
+
+\subsection*{\texttt{TheoreticalFramework/Leptons.lean}}
+\vspace{2pt}
+{\ttfamily\scriptsize\setlength{\parindent}{0pt}\setlength{\baselineskip}{7.6pt}\setlength{\parskip}{0pt}\raggedright\obeyspaces\obeylines
+/-
+\# TheoreticalFramework.Leptons
+\mbox{}
+Numerical instantiation of the compactness framework for the three charged
+leptons, and the Casimir amplification ratios of the muonic and tauonic regimes.
+\mbox{}
+The lepton masses enter only through the ratios `m\_\allowbreak{}μ/m\_\allowbreak{}e ≈ 207` and
+`m\_\allowbreak{}τ/m\_\allowbreak{}e ≈ 3477`.  Both integers are checked here against the tabulated masses
+(`0.511`, `105.66`, `1777` MeV/c²) at the precision at which the framework
+states them, and the amplification ratios are then computed exactly and bounded
+in the published orders of magnitude.
+-/
+import TheoreticalFramework.Basic
+\mbox{}
+namespace TheoreticalFramework
+\mbox{}
+noncomputable section
+\mbox{}
+/-! \#\# Lepton data -/
+\mbox{}
+/-- Electron mass, MeV/c². -/
+def massElectronMeV : ℝ := 0.511
+\mbox{}
+/-- Muon mass, MeV/c². -/
+def massMuonMeV : ℝ := 105.66
+\mbox{}
+/-- Tauon mass, MeV/c². -/
+def massTauonMeV : ℝ := 1777
+\mbox{}
+/-- Muon-to-electron mass ratio, as used throughout the framework. -/
+def massRatioMuon : ℝ := 207
+\mbox{}
+/-- Tauon-to-electron mass ratio, as used throughout the framework. -/
+def massRatioTauon : ℝ := 3477
+\mbox{}
+theorem massRatioMuon\_\allowbreak{}pos : 0 \textless{} massRatioMuon := by
+  norm\_\allowbreak{}num [massRatioMuon]
+\mbox{}
+theorem massRatioTauon\_\allowbreak{}pos : 0 \textless{} massRatioTauon := by
+  norm\_\allowbreak{}num [massRatioTauon]
+\mbox{}
+/-- The integer ratio `207` reproduces the tabulated muon/electron mass ratio to
+better than a quarter of a unit. -/
+theorem massRatioMuon\_\allowbreak{}consistent :
+    |massMuonMeV / massElectronMeV - massRatioMuon| ≤ 0.25 := by
+  unfold massMuonMeV massElectronMeV massRatioMuon
+  rw [abs\_\allowbreak{}le]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- The integer ratio `3477` reproduces the tabulated tauon/electron mass ratio
+to better than half a unit. -/
+theorem massRatioTauon\_\allowbreak{}consistent :
+    |massTauonMeV / massElectronMeV - massRatioTauon| ≤ 0.5 := by
+  unfold massTauonMeV massElectronMeV massRatioTauon
+  rw [abs\_\allowbreak{}le]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-! \#\# Casimir amplification, muon and tauon versus electron
+\mbox{}
+The general ratio `casimirEnergy\_\allowbreak{}ratio` is instantiated with masses
+`m\_\allowbreak{}ℓ = (m\_\allowbreak{}ℓ/m\_\allowbreak{}e) · m\_\allowbreak{}e`, so the result is a statement about the physics, not
+about a bare numeral.  The numeral is then evaluated exactly.
+-/
+\mbox{}
+/-- **Muonic Casimir amplification**, in the form `E\_\allowbreak{}μ / E\_\allowbreak{}e = (m\_\allowbreak{}μ/m\_\allowbreak{}e)⁵`. -/
+theorem casimir\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}general \{κ m₀ : ℝ\} (hκ : κ ≠ 0) (hm : 0 \textless{} m₀) :
+    casimirEnergy κ (massRatioMuon * m₀) / casimirEnergy κ m₀ = massRatioMuon \textasciicircum{} 5 := by
+  rw [casimirEnergy\_\allowbreak{}ratio hκ (mul\_\allowbreak{}ne\_\allowbreak{}zero massRatioMuon\_\allowbreak{}pos.ne' hm.ne') hm.ne']
+  field\_\allowbreak{}simp
+\mbox{}
+/-- **Tauonic Casimir amplification**, in the form `E\_\allowbreak{}τ / E\_\allowbreak{}e = (m\_\allowbreak{}τ/m\_\allowbreak{}e)⁵`. -/
+theorem casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}general \{κ m₀ : ℝ\} (hκ : κ ≠ 0) (hm : 0 \textless{} m₀) :
+    casimirEnergy κ (massRatioTauon * m₀) / casimirEnergy κ m₀ = massRatioTauon \textasciicircum{} 5 := by
+  rw [casimirEnergy\_\allowbreak{}ratio hκ (mul\_\allowbreak{}ne\_\allowbreak{}zero massRatioTauon\_\allowbreak{}pos.ne' hm.ne') hm.ne']
+  field\_\allowbreak{}simp
+\mbox{}
+/-- Exact value of the muonic amplification, `207⁵ = 380 059 617 807`. -/
+theorem massRatioMuon\_\allowbreak{}pow\_\allowbreak{}five : massRatioMuon \textasciicircum{} 5 = 380059617807 := by
+  norm\_\allowbreak{}num [massRatioMuon]
+\mbox{}
+/-- Exact value of the tauonic amplification, `3477⁵ = 508 186 885 683 281 157`. -/
+theorem massRatioTauon\_\allowbreak{}pow\_\allowbreak{}five : massRatioTauon \textasciicircum{} 5 = 508186885683281157 := by
+  norm\_\allowbreak{}num [massRatioTauon]
+\mbox{}
+/-- `(207)⁵ ≈ 4 × 10¹¹`: the amplification lies between `3.8 × 10¹¹` and `4 × 10¹¹`. -/
+theorem casimir\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}order :
+    (3.8 : ℝ) * 10 \textasciicircum{} 11 ≤ massRatioMuon \textasciicircum{} 5 ∧ massRatioMuon \textasciicircum{} 5 ≤ 4 * 10 \textasciicircum{} 11 := by
+  rw [massRatioMuon\_\allowbreak{}pow\_\allowbreak{}five]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- `(3477)⁵ ≈ 5.1 × 10¹⁷`: the amplification lies between `5.08 × 10¹⁷` and `5.1 × 10¹⁷`. -/
+theorem casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}order :
+    (5.08 : ℝ) * 10 \textasciicircum{} 17 ≤ massRatioTauon \textasciicircum{} 5 ∧ massRatioTauon \textasciicircum{} 5 ≤ (5.1 : ℝ) * 10 \textasciicircum{} 17 := by
+  rw [massRatioTauon\_\allowbreak{}pow\_\allowbreak{}five]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- The tauon amplifies the vacuum coupling by a further factor
+`(3477/207)⁵ ≈ 1.3 × 10⁶` over the muon. -/
+theorem casimir\_\allowbreak{}amplification\_\allowbreak{}tauon\_\allowbreak{}over\_\allowbreak{}muon :
+    (1.3 : ℝ) * 10 \textasciicircum{} 6 ≤ (massRatioTauon / massRatioMuon) \textasciicircum{} 5 ∧
+      (massRatioTauon / massRatioMuon) \textasciicircum{} 5 ≤ (1.34 : ℝ) * 10 \textasciicircum{} 6 := by
+  unfold massRatioTauon massRatioMuon
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- The amplification is monotone in the mass ratio: the lepton hierarchy
+`e \textless{} μ \textless{} τ` is a strict hierarchy of vacuum couplings. -/
+theorem casimir\_\allowbreak{}amplification\_\allowbreak{}hierarchy :
+    (1 : ℝ) \textless{} massRatioMuon \textasciicircum{} 5 ∧ massRatioMuon \textasciicircum{} 5 \textless{} massRatioTauon \textasciicircum{} 5 := by
+  rw [massRatioMuon\_\allowbreak{}pow\_\allowbreak{}five, massRatioTauon\_\allowbreak{}pow\_\allowbreak{}five]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-! \#\# Equivalent magnetic field, and where the exponent `3` comes from
+\mbox{}
+The source text associates the Casimir energy with an equivalent magnetic field
+through `B² $\propto$ E\_\allowbreak{}C / Volume`.  Two volume ansätze are possible, and they give
+different exponents.  Both are proved here so that the framework's use of
+`B/B₀ $\propto$ m³` is tied to a stated assumption rather than left implicit.
+\mbox{}
+* With the source's volume ansatz `V $\propto$ S·d³` one gets `B² $\propto$ m⁶`, i.e. `B $\propto$ m³`.
+* With the geometrically literal plate volume `V = S·d` one gets `B² $\propto$ m⁴`, i.e. `B $\propto$ m²`.
+\mbox{}
+The first is the exponent the framework uses, and it coincides with the velocity
+exponent `n - 2 = 3`; the second is recorded because it is what a literal plate
+volume gives, and the discrepancy is a property of the ansatz, not of the
+algebra.
+-/
+\mbox{}
+/-- Equivalent-field amplification under the source's volume ansatz `V $\propto$ S·d³`:
+`B $\propto$ m³`. -/
+def fieldAmplificationSource (m₁ m₂ : ℝ) : ℝ := (m₁ / m₂) \textasciicircum{} 3
+\mbox{}
+/-- Equivalent-field amplification under the literal plate volume `V = S·d`:
+`B $\propto$ m²`. -/
+def fieldAmplificationPlate (m₁ m₂ : ℝ) : ℝ := (m₁ / m₂) \textasciicircum{} 2
+\mbox{}
+/-- Source ansatz: `B² $\propto$ E\_\allowbreak{}C / (S·d³) $\propto$ m⁶`, hence `B $\propto$ m³`. -/
+theorem field\_\allowbreak{}amplification\_\allowbreak{}source (κ m₁ m₂ : ℝ) (hκ : 0 \textless{} κ) (h₁ : 0 \textless{} m₁) (h₂ : 0 \textless{} m₂) :
+    (casimirEnergy κ m₁ / (m₁ \textasciicircum{} 2 * effRadius κ m₁ \textasciicircum{} 3)) /
+        (casimirEnergy κ m₂ / (m₂ \textasciicircum{} 2 * effRadius κ m₂ \textasciicircum{} 3)) = (m₁ / m₂) \textasciicircum{} 6 := by
+  rw [casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic hκ.ne' h₁.ne', casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic hκ.ne' h₂.ne']
+  unfold effRadius
+  field\_\allowbreak{}simp
+\mbox{}
+/-- Literal plate volume: `B² $\propto$ E\_\allowbreak{}C / (S·d) $\propto$ m⁴`, hence `B $\propto$ m²`. -/
+theorem field\_\allowbreak{}amplification\_\allowbreak{}plate (κ m₁ m₂ : ℝ) (hκ : 0 \textless{} κ) (h₁ : 0 \textless{} m₁) (h₂ : 0 \textless{} m₂) :
+    (casimirEnergy κ m₁ / (m₁ \textasciicircum{} 2 * effRadius κ m₁)) /
+        (casimirEnergy κ m₂ / (m₂ \textasciicircum{} 2 * effRadius κ m₂)) = (m₁ / m₂) \textasciicircum{} 4 := by
+  rw [casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic hκ.ne' h₁.ne', casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic hκ.ne' h₂.ne']
+  unfold effRadius
+  field\_\allowbreak{}simp
+\mbox{}
+/-- The source's field amplification for the muon, `(207)³ ≈ 9 × 10⁶`. -/
+theorem field\_\allowbreak{}amplification\_\allowbreak{}muon\_\allowbreak{}order :
+    (8.8 : ℝ) * 10 \textasciicircum{} 6 ≤ fieldAmplificationSource massRatioMuon 1 ∧
+      fieldAmplificationSource massRatioMuon 1 ≤ (8.9 : ℝ) * 10 \textasciicircum{} 6 := by
+  unfold fieldAmplificationSource massRatioMuon
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+end
+\mbox{}
+end TheoreticalFramework
+\mbox{}
+}
+
+\clearpage
+
+
+\subsection*{\texttt{TheoreticalFramework/Dimensions.lean}}
+\vspace{2pt}
+{\ttfamily\scriptsize\setlength{\parindent}{0pt}\setlength{\baselineskip}{7.6pt}\setlength{\parskip}{0pt}\raggedright\obeyspaces\obeylines
+/-
+\# TheoreticalFramework.Dimensions
+\mbox{}
+The generalized `n`-dimensional kinematic framework.
+\mbox{}
+The framework's generalized dimension is not a free parameter: it is read off the
+quintic mass dependence of the anomalous-moment contribution,
+\mbox{}
+  `a\_\allowbreak{}ℓ = a\_\allowbreak{}QED + a\_\allowbreak{}EW+had(m\_\allowbreak{}ℓ⁵) + a\_\allowbreak{}str(m\_\allowbreak{}ℓ, G\_\allowbreak{}ℓ)`,
+\mbox{}
+whose structural term scales as `m⁵` (`casimirEnergy\_\allowbreak{}eq\_\allowbreak{}quintic`).  Setting
+`n = 5` makes the velocity exponent `n − 2 = 3`, which is the exponent that
+appears in the ejection-velocity law and, independently, in the equivalent
+magnetic-field amplification of `TheoreticalFramework.Leptons`.
+\mbox{}
+The velocity law itself is stated for arbitrary `n ≥ 2` and then specialised:
+\mbox{}
+  `vf² = v₂² · (m\_\allowbreak{}ℓ/m₀)\textasciicircum{}(n−2)`.
+\mbox{}
+`vf` is defined as the non-negative root of that equation, and the paper's
+multiplicative form `vf = v₂ · √((m\_\allowbreak{}ℓ/m₀)\textasciicircum{}(n−2))` is proved equivalent for
+`v₂ ≥ 0`.
+\mbox{}
+The generalized units of the framework, `[Cₙ] = [vₙ] = m\textasciicircum{}(2/n)/s`, enter only
+through exponent bookkeeping; that bookkeeping is proved in
+`generalised\_\allowbreak{}unit\_\allowbreak{}exponents` and `time\_\allowbreak{}exponent\_\allowbreak{}balance`.
+-/
+import TheoreticalFramework.Leptons
+\mbox{}
+namespace TheoreticalFramework
+\mbox{}
+noncomputable section
+\mbox{}
+/-! \#\# The generalized dimension -/
+\mbox{}
+/-- Exponent of the mass in the Casimir energy of the compactness ansatz. -/
+def casimirMassExponent : ℕ := 5
+\mbox{}
+/-- The generalized dimension, fixed by the quintic mass dependence: `n = 5`. -/
+def generalizedDimension : ℕ := casimirMassExponent
+\mbox{}
+/-- The generalized dimension is five. -/
+theorem generalizedDimension\_\allowbreak{}eq\_\allowbreak{}five : generalizedDimension = 5 := rfl
+\mbox{}
+/-! \#\# The anomalous moment whose quintic term fixes `n`
+\mbox{}
+The framework decomposes the anomalous moment of a lepton into a QED part, an
+electroweak-plus-hadronic part and a structural part, the last being quintic in
+the mass.  The quintic exponent is what fixes `n = 5`; it is not an independent
+input. -/
+\mbox{}
+/-- The structural part of the anomalous moment, `a\_\allowbreak{}str = C · m\textasciicircum{}n`. -/
+def structuralTerm (C m : ℝ) : ℝ := C * m \textasciicircum{} generalizedDimension
+\mbox{}
+/-- The framework's decomposition `a\_\allowbreak{}ℓ = a\_\allowbreak{}QED + a\_\allowbreak{}EW+had + a\_\allowbreak{}str`. -/
+def anomalousMoment (aQED aEWHad C m : ℝ) : ℝ := aQED + aEWHad + structuralTerm C m
+\mbox{}
+/-- The structural term is quintic in the mass. -/
+theorem structuralTerm\_\allowbreak{}quintic (C m : ℝ) : structuralTerm C m = C * (m : ℝ) \textasciicircum{} 5 := by
+  unfold structuralTerm
+  rw [generalizedDimension\_\allowbreak{}eq\_\allowbreak{}five]
+\mbox{}
+/-- The structural term amplifies between two leptons by the fifth power of the
+mass ratio: the same number as the Casimir amplification, which is the reason a
+single exponent serves both. -/
+theorem structuralTerm\_\allowbreak{}ratio (C m₁ m₂ : ℝ) (hC : C ≠ 0) (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    structuralTerm C m₁ / structuralTerm C m₂ = (m₁ / m₂) \textasciicircum{} 5 := by
+  unfold structuralTerm
+  rw [generalizedDimension\_\allowbreak{}eq\_\allowbreak{}five, div\_\allowbreak{}pow]
+  field\_\allowbreak{}simp [hC, pow\_\allowbreak{}ne\_\allowbreak{}zero 5 h₁, pow\_\allowbreak{}ne\_\allowbreak{}zero 5 h₂]
+\mbox{}
+/-- Exponent of the mass ratio in the velocity law, `n − 2`. -/
+def velocityExponent : ℕ := generalizedDimension - 2
+\mbox{}
+/-- With `n = 5` the velocity law carries the cube of the mass ratio. -/
+theorem velocityExponent\_\allowbreak{}eq\_\allowbreak{}three : velocityExponent = 3 := rfl
+\mbox{}
+/-- The velocity exponent is `n − 2` for the framework's `n`. -/
+theorem velocityExponent\_\allowbreak{}eq (n : ℕ) (hn : n = generalizedDimension) :
+    velocityExponent = n - 2 := by
+  subst hn
+  rfl
+\mbox{}
+/-! \#\# Generalized units
+\mbox{}
+The framework assigns to the generalized velocity the units `m\textasciicircum{}(2/n)/s`, so that
+the `n`-th power carries `m²/sⁿ`; multiplying by `dt₀\textasciicircum{}(n−2)` then carries
+`m²/s²`, the units of `v₂²`.  Only the exponents matter, and they are exact.
+-/
+\mbox{}
+/-- Unit bookkeeping of `[vₙ] = m\textasciicircum{}(2/n)/s`: the mass exponent balances to `2`. -/
+theorem generalised\_\allowbreak{}unit\_\allowbreak{}exponents (n : ℚ) (hn : n ≠ 0) : n * (2 / n) = 2 := by
+  field\_\allowbreak{}simp
+\mbox{}
+/-- Unit bookkeeping of the time factor `dt₀\textasciicircum{}(n−2)`: the exponents close on `n`. -/
+theorem time\_\allowbreak{}exponent\_\allowbreak{}balance (n : ℚ) : (n - 2) + 2 = n := by
+  ring
+\mbox{}
+/-- The generalized-velocity relation `vₙⁿ · dt₀\textasciicircum{}(n−2) = v₂²` of the framework. -/
+def GeneralisedVelocityRelation (n : ℕ) (vn dt0 v2 : ℝ) : Prop :=
+  vn \textasciicircum{} n * dt0 \textasciicircum{} (n - 2) = v2 \textasciicircum{} 2
+\mbox{}
+/-- **Scale substitution.**  Replacing the time scale by `q·dt₀` multiplies the
+relation by `q\textasciicircum{}(n−2)`, which is the framework's substitution rule
+`vₙ·(q·dt₀)\textasciicircum{}(n−2) = v₂²·q\textasciicircum{}(n−2)`; the parameter `q = m\_\allowbreak{}ℓ/m₀` is what links the
+muonic and tauonic regimes. -/
+theorem scale\_\allowbreak{}substitution (n : ℕ) \{vn dt0 q v2 : ℝ\}
+    (h : vn * dt0 \textasciicircum{} (n - 2) = v2 \textasciicircum{} 2) :
+    vn * (q * dt0) \textasciicircum{} (n - 2) = v2 \textasciicircum{} 2 * q \textasciicircum{} (n - 2) := by
+  rw [mul\_\allowbreak{}pow, ← h]
+  ring
+\mbox{}
+/-! \#\# The velocity law -/
+\mbox{}
+/-- Ejection velocity of particles produced in lepton–lepton collisions in the
+generalized framework: the non-negative root of `vf² = v₂²·r\textasciicircum{}(n−2)`, where `r`
+is the mass ratio `m\_\allowbreak{}ℓ/m₀`. -/
+def generalisedVelocity (n : ℕ) (v₂ r : ℝ) : ℝ := Real.sqrt (v₂ \textasciicircum{} 2 * r \textasciicircum{} (n - 2))
+\mbox{}
+/-- **The velocity law**, for arbitrary generalized dimension `n`:
+`vf² = v₂² · (m\_\allowbreak{}ℓ/m₀)\textasciicircum{}(n−2)`. -/
+theorem velocity\_\allowbreak{}law (n : ℕ) (v₂ r : ℝ) (hr : 0 ≤ r) :
+    generalisedVelocity n v₂ r \textasciicircum{} 2 = v₂ \textasciicircum{} 2 * r \textasciicircum{} (n - 2) := by
+  unfold generalisedVelocity
+  exact Real.sq\_\allowbreak{}sqrt (mul\_\allowbreak{}nonneg (sq\_\allowbreak{}nonneg v₂) (pow\_\allowbreak{}nonneg hr \_\allowbreak{}))
+\mbox{}
+/-- The paper's form of the law, `vf = v₂ · √((m\_\allowbreak{}ℓ/m₀)\textasciicircum{}(n−2))`, agrees with the
+definition for non-negative input velocity. -/
+theorem generalisedVelocity\_\allowbreak{}eq\_\allowbreak{}mul (n : ℕ) \{v₂ r : ℝ\} (hv : 0 ≤ v₂) :
+    generalisedVelocity n v₂ r = v₂ * Real.sqrt (r \textasciicircum{} (n - 2)) := by
+  unfold generalisedVelocity
+  rw [Real.sqrt\_\allowbreak{}mul (sq\_\allowbreak{}nonneg v₂), Real.sqrt\_\allowbreak{}sq hv]
+\mbox{}
+/-- Ejection velocities are non-negative. -/
+theorem generalisedVelocity\_\allowbreak{}nonneg (n : ℕ) (v₂ r : ℝ) : 0 ≤ generalisedVelocity n v₂ r :=
+  Real.sqrt\_\allowbreak{}nonneg \_\allowbreak{}
+\mbox{}
+/-- Two-sided bounds on an ejection velocity, from exact bounds on `vf²`.
+This is the workhorse that turns a computed square into a velocity interval
+without any rounding step. -/
+theorem generalisedVelocity\_\allowbreak{}bounds \{n : ℕ\} \{v₂ r a b : ℝ\} (hb : 0 ≤ b)
+    (h₁ : a \textasciicircum{} 2 ≤ v₂ \textasciicircum{} 2 * r \textasciicircum{} (n - 2)) (h₂ : v₂ \textasciicircum{} 2 * r \textasciicircum{} (n - 2) ≤ b \textasciicircum{} 2) :
+    a ≤ generalisedVelocity n v₂ r ∧ generalisedVelocity n v₂ r ≤ b := by
+  unfold generalisedVelocity
+  exact ⟨Real.le\_\allowbreak{}sqrt\_\allowbreak{}of\_\allowbreak{}sq\_\allowbreak{}le h₁, (Real.sqrt\_\allowbreak{}le\_\allowbreak{}left hb).2 h₂⟩
+\mbox{}
+/-- The velocity law at the framework's generalized dimension:
+`vf² = v₂² · (m\_\allowbreak{}ℓ/m₀)³`. -/
+theorem velocity\_\allowbreak{}law\_\allowbreak{}five (v₂ r : ℝ) (hr : 0 ≤ r) :
+    generalisedVelocity generalizedDimension v₂ r \textasciicircum{} 2 = v₂ \textasciicircum{} 2 * r \textasciicircum{} 3 := by
+  rw [velocity\_\allowbreak{}law generalizedDimension v₂ r hr, generalizedDimension\_\allowbreak{}eq\_\allowbreak{}five]
+\mbox{}
+/-- The law's explicit linear-in-`v₂` form at `n = 5`: `vf = v₂·√(r³)`. -/
+theorem generalisedVelocity\_\allowbreak{}five\_\allowbreak{}eq\_\allowbreak{}mul \{v₂ r : ℝ\} (hv : 0 ≤ v₂) :
+    generalisedVelocity generalizedDimension v₂ r = v₂ * Real.sqrt (r \textasciicircum{} 3) := by
+  rw [generalisedVelocity\_\allowbreak{}eq\_\allowbreak{}mul generalizedDimension hv, generalizedDimension\_\allowbreak{}eq\_\allowbreak{}five]
+\mbox{}
+/-- The ejection velocity grows with the lepton mass ratio: heavier collision
+partners eject faster. -/
+theorem generalisedVelocity\_\allowbreak{}mono \{n : ℕ\} \{v₂ r₁ r₂ : ℝ\} (hr₁ : 0 ≤ r₁) (h : r₁ ≤ r₂) :
+    generalisedVelocity n v₂ r₁ ≤ generalisedVelocity n v₂ r₂ := by
+  unfold generalisedVelocity
+  apply Real.sqrt\_\allowbreak{}le\_\allowbreak{}sqrt
+  exact mul\_\allowbreak{}le\_\allowbreak{}mul\_\allowbreak{}of\_\allowbreak{}nonneg\_\allowbreak{}left (pow\_\allowbreak{}le\_\allowbreak{}pow\_\allowbreak{}left₀ hr₁ h \_\allowbreak{}) (sq\_\allowbreak{}nonneg v₂)
+\mbox{}
+/-- The ejection velocity grows with the collision velocity. -/
+theorem generalisedVelocity\_\allowbreak{}mono\_\allowbreak{}v₂ \{n : ℕ\} \{v₂ v₂' r : ℝ\} (hv : 0 ≤ v₂) (h : v₂ ≤ v₂')
+    (hr : 0 ≤ r) :
+    generalisedVelocity n v₂ r ≤ generalisedVelocity n v₂' r := by
+  unfold generalisedVelocity
+  apply Real.sqrt\_\allowbreak{}le\_\allowbreak{}sqrt
+  exact mul\_\allowbreak{}le\_\allowbreak{}mul\_\allowbreak{}of\_\allowbreak{}nonneg\_\allowbreak{}right (pow\_\allowbreak{}le\_\allowbreak{}pow\_\allowbreak{}left₀ hv h 2) (pow\_\allowbreak{}nonneg hr \_\allowbreak{})
+\mbox{}
+/-- The ejection velocity vanishes with the collision velocity: no collisions,
+no propulsion. -/
+theorem generalisedVelocity\_\allowbreak{}zero (n : ℕ) (r : ℝ) : generalisedVelocity n 0 r = 0 := by
+  unfold generalisedVelocity
+  simp
+\mbox{}
+end
+\mbox{}
+end TheoreticalFramework
+\mbox{}
+}
+
+\clearpage
+
+
+\subsection*{\texttt{TheoreticalFramework/Velocity.lean}}
+\vspace{2pt}
+{\ttfamily\scriptsize\setlength{\parindent}{0pt}\setlength{\baselineskip}{7.6pt}\setlength{\parskip}{0pt}\raggedright\obeyspaces\obeylines
+/-
+\# TheoreticalFramework.Velocity
+\mbox{}
+Velocity scaling law, amplification factors and ejection velocities of the
+muonic and tauonic regimes, with every physical constant bounded rigorously.
+\mbox{}
+Units.  The framework states collision velocities in km/h and ejection
+velocities in m/s and km/s.  All conversions are proved; no numeric value is
+asserted without a surrounding interval, and each interval is closed by an exact
+computation of `vf²` together with `generalisedVelocity\_\allowbreak{}bounds`.
+\mbox{}
+The two amplification factors of the framework are
+`(m\_\allowbreak{}μ/m\_\allowbreak{}e)\textasciicircum{}(n−2) = 207³ = 8 869 743 ≈ 8.9 × 10⁶` and
+`(m\_\allowbreak{}τ/m\_\allowbreak{}e)\textasciicircum{}(n−2) = 3477³ = 42 035 292 333 ≈ 4.2 × 10¹⁰`.
+\mbox{}
+The muonic ceiling reproduces the source's `≈ 20 700 km/s`.  The tauonic ceiling
+does *not* reproduce the source's `1.34 × 10¹² m/s`: the exact law gives
+`4.2403 × 10¹²`, and the discrepancy is localised in
+`source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}underestimates` — the source evaluates
+`√(1.80 × 10²⁵)` as `1.34 × 10¹²` where it is `4.24 × 10¹²`, a `√10` slip in the
+decimal exponent.  The published figure is kept as a separate definition so that
+the two can be compared without either being hidden.
+-/
+import TheoreticalFramework.Dimensions
+\mbox{}
+namespace TheoreticalFramework
+\mbox{}
+noncomputable section
+\mbox{}
+/-! \#\# Units and framework constants -/
+\mbox{}
+/-- Kilometres per hour to metres per second, `1 km/h = 5/18 m/s`. -/
+def kmhToMs (v : ℝ) : ℝ := v * 5 / 18
+\mbox{}
+/-- The conversion agrees with the definitional `1000/3600`. -/
+theorem kmhToMs\_\allowbreak{}eq (v : ℝ) : kmhToMs v = v * 1000 / 3600 := by
+  unfold kmhToMs
+  ring
+\mbox{}
+/-- Standard gravity, `g₀ = 9.80665 m/s²`, used to express specific impulse. -/
+def standardGravity : ℝ := 9.80665
+\mbox{}
+theorem standardGravity\_\allowbreak{}pos : 0 \textless{} standardGravity := by
+  norm\_\allowbreak{}num [standardGravity]
+\mbox{}
+/-- Speed of light in vacuum, m/s. -/
+def speedOfLight : ℝ := 299792458
+\mbox{}
+/-- Specific impulse, `Isp = v\_\allowbreak{}e / g₀`, in seconds. -/
+def specificImpulse (ve : ℝ) : ℝ := ve / standardGravity
+\mbox{}
+/-- Vacuum specific impulse of a Raptor engine, seconds: the chemical benchmark
+of the source text. -/
+def raptorSpecificImpulse : ℝ := 363
+\mbox{}
+/-! \#\# Amplification factors -/
+\mbox{}
+/-- Upper end of the muonic input window, `v₂ = 25 000 km/h`. -/
+def collisionVelocityMuonMax : ℝ := kmhToMs 25000
+\mbox{}
+/-- The muonic input ceiling in m/s. -/
+theorem collisionVelocityMuonMax\_\allowbreak{}eq : collisionVelocityMuonMax = 62500 / 9 := by
+  unfold collisionVelocityMuonMax kmhToMs
+  norm\_\allowbreak{}num
+\mbox{}
+/-- `25 000 km/h ≈ 6 944 m/s`. -/
+theorem collisionVelocityMuonMax\_\allowbreak{}bounds :
+    6944 ≤ collisionVelocityMuonMax ∧ collisionVelocityMuonMax ≤ 6945 := by
+  rw [collisionVelocityMuonMax\_\allowbreak{}eq]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- Muonic amplification factor, `(m\_\allowbreak{}μ/m\_\allowbreak{}e)\textasciicircum{}(n−2)`. -/
+def muonAmplification : ℝ := massRatioMuon \textasciicircum{} velocityExponent
+\mbox{}
+/-- Tauonic amplification factor, `(m\_\allowbreak{}τ/m\_\allowbreak{}e)\textasciicircum{}(n−2)`. -/
+def tauonAmplification : ℝ := massRatioTauon \textasciicircum{} velocityExponent
+\mbox{}
+/-- `207³ = 8 869 743`. -/
+theorem muonAmplification\_\allowbreak{}eq : muonAmplification = 8869743 := by
+  unfold muonAmplification velocityExponent generalizedDimension casimirMassExponent
+  norm\_\allowbreak{}num [massRatioMuon]
+\mbox{}
+/-- `3477³ = 42 035 292 333`. -/
+theorem tauonAmplification\_\allowbreak{}eq : tauonAmplification = 42035292333 := by
+  unfold tauonAmplification velocityExponent generalizedDimension casimirMassExponent
+  norm\_\allowbreak{}num [massRatioTauon]
+\mbox{}
+/-- The muonic amplification is `(207)³ ≈ 8.9 × 10⁶`. -/
+theorem muonAmplification\_\allowbreak{}order :
+    (8.8 : ℝ) * 10 \textasciicircum{} 6 ≤ muonAmplification ∧ muonAmplification ≤ (8.9 : ℝ) * 10 \textasciicircum{} 6 := by
+  rw [muonAmplification\_\allowbreak{}eq]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- The tauonic amplification is `(3477)³ ≈ 4.2 × 10¹⁰`. -/
+theorem tauonAmplification\_\allowbreak{}order :
+    (4.2 : ℝ) * 10 \textasciicircum{} 10 ≤ tauonAmplification ∧ tauonAmplification ≤ (4.21 : ℝ) * 10 \textasciicircum{} 10 := by
+  rw [tauonAmplification\_\allowbreak{}eq]
+  constructor \textless{};\textgreater{} norm\_\allowbreak{}num
+\mbox{}
+/-- The tauonic amplification exceeds the muonic one by `(3477/207)³ ≈ 4.74 × 10³`. -/
+theorem tauon\_\allowbreak{}over\_\allowbreak{}muon\_\allowbreak{}amplification :
+    (4.73 : ℝ) * 10 \textasciicircum{} 3 ≤ tauonAmplification / muonAmplification ∧
+      tauonAmplification / muonAmplification ≤ (4.74 : ℝ) * 10 \textasciicircum{} 3 := by
+  rw [tauonAmplification\_\allowbreak{}eq, muonAmplification\_\allowbreak{}eq]
+  constructor
+  · rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    norm\_\allowbreak{}num
+  · rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    norm\_\allowbreak{}num
+\mbox{}
+/-! \#\# Muonic regime: ejection velocity -/
+\mbox{}
+/-- Maximum ejection velocity of the muonic regime, at `v₂ = 25 000 km/h`. -/
+def muonMaxEjection : ℝ :=
+  generalisedVelocity generalizedDimension collisionVelocityMuonMax massRatioMuon
+\mbox{}
+/-- The ejection velocity obeys the law: `vf² = v₂² · 207³`. -/
+theorem muonMaxEjection\_\allowbreak{}sq :
+    muonMaxEjection \textasciicircum{} 2 = collisionVelocityMuonMax \textasciicircum{} 2 * massRatioMuon \textasciicircum{} 3 := by
+  unfold muonMaxEjection
+  exact velocity\_\allowbreak{}law\_\allowbreak{}five \_\allowbreak{} \_\allowbreak{} massRatioMuon\_\allowbreak{}pos.le
+\mbox{}
+/-- `vf ≈ 2.06820 × 10⁷ m/s` for the muonic ceiling. -/
+theorem muonMaxEjection\_\allowbreak{}bounds :
+    (2.06820 : ℝ) * 10 \textasciicircum{} 7 ≤ muonMaxEjection ∧
+      muonMaxEjection ≤ (2.06821 : ℝ) * 10 \textasciicircum{} 7 := by
+  have h₁ : ((2.06820 : ℝ) * 10 \textasciicircum{} 7) \textasciicircum{} 2 ≤
+      collisionVelocityMuonMax \textasciicircum{} 2 * massRatioMuon \textasciicircum{} 3 := by
+    rw [collisionVelocityMuonMax\_\allowbreak{}eq]
+    norm\_\allowbreak{}num [massRatioMuon]
+  have h₂ : collisionVelocityMuonMax \textasciicircum{} 2 * massRatioMuon \textasciicircum{} 3 ≤
+      ((2.06821 : ℝ) * 10 \textasciicircum{} 7) \textasciicircum{} 2 := by
+    rw [collisionVelocityMuonMax\_\allowbreak{}eq]
+    norm\_\allowbreak{}num [massRatioMuon]
+  have := generalisedVelocity\_\allowbreak{}bounds (n := generalizedDimension)
+    (v₂ := collisionVelocityMuonMax) (r := massRatioMuon)
+    (a := (2.06820 : ℝ) * 10 \textasciicircum{} 7) (b := (2.06821 : ℝ) * 10 \textasciicircum{} 7)
+    (show (0 : ℝ) ≤ (2.06821 : ℝ) * 10 \textasciicircum{} 7 by norm\_\allowbreak{}num) h₁ h₂
+  simpa [muonMaxEjection] using this
+\mbox{}
+/-- The source's `≈ 20 700 km/s`, proved as an interval in km/s. -/
+theorem muonMaxEjection\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s :
+    (2.068 : ℝ) * 10 \textasciicircum{} 4 ≤ muonMaxEjection / 1000 ∧
+      muonMaxEjection / 1000 ≤ (2.07 : ℝ) * 10 \textasciicircum{} 4 := by
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection\_\allowbreak{}bounds
+  constructor
+  · rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+  · rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+\mbox{}
+/-- The muonic ejection velocity is subluminal: the muonic regime is compatible
+with ordinary special relativity. -/
+theorem muonMaxEjection\_\allowbreak{}subluminal : muonMaxEjection \textless{} speedOfLight := by
+  have := muonMaxEjection\_\allowbreak{}bounds.2
+  unfold speedOfLight
+  linarith
+\mbox{}
+/-- The muonic input window is subluminal as well. -/
+theorem collisionVelocityMuonMax\_\allowbreak{}subluminal : collisionVelocityMuonMax \textless{} speedOfLight := by
+  have := collisionVelocityMuonMax\_\allowbreak{}bounds.2
+  unfold speedOfLight
+  linarith
+\mbox{}
+/-- Specific impulse of the muonic ceiling, `Isp = v\_\allowbreak{}e/g₀ ≈ 2.109 × 10⁶ s`. -/
+theorem muonSpecificImpulse\_\allowbreak{}bounds :
+    (2.108 : ℝ) * 10 \textasciicircum{} 6 ≤ specificImpulse muonMaxEjection ∧
+      specificImpulse muonMaxEjection ≤ (2.109 : ℝ) * 10 \textasciicircum{} 6 := by
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection\_\allowbreak{}bounds
+  have hg := standardGravity\_\allowbreak{}pos
+  constructor
+  · rw [specificImpulse, le\_\allowbreak{}div\_\allowbreak{}iff₀ hg]
+    unfold standardGravity at hg ⊢
+    nlinarith
+  · rw [specificImpulse, div\_\allowbreak{}le\_\allowbreak{}iff₀ hg]
+    unfold standardGravity at hg ⊢
+    nlinarith
+\mbox{}
+/-- The muonic impulse exceeds the Raptor benchmark by a factor of about
+`5.8 × 10³`, i.e. "roughly 6 000 times" as the source states. -/
+theorem muonImpulse\_\allowbreak{}over\_\allowbreak{}raptor :
+    (5.80 : ℝ) * 10 \textasciicircum{} 3 ≤ specificImpulse muonMaxEjection / raptorSpecificImpulse ∧
+      specificImpulse muonMaxEjection / raptorSpecificImpulse ≤ (5.82 : ℝ) * 10 \textasciicircum{} 3 := by
+  obtain ⟨h₁, h₂⟩ := muonSpecificImpulse\_\allowbreak{}bounds
+  unfold raptorSpecificImpulse
+  constructor
+  · rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+  · rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+\mbox{}
+/-! \#\# Tauonic regime: ejection velocity -/
+\mbox{}
+/-- Input ceiling of the tauonic regime: the muonic regime's maximum ejection
+velocity, `≈ 20 682 km/s`.  Taking the unrounded value is what makes the two
+regimes exactly continuous. -/
+def tauonicInputMax : ℝ := muonMaxEjection
+\mbox{}
+/-- Maximum ejection velocity of the tauonic regime, at `v₂ = tauonicInputMax`. -/
+def tauonMaxEjection : ℝ :=
+  generalisedVelocity generalizedDimension tauonicInputMax massRatioTauon
+\mbox{}
+/-- The tauonic ejection velocity obeys the law: `vf² = v₂² · 3477³`. -/
+theorem tauonMaxEjection\_\allowbreak{}sq :
+    tauonMaxEjection \textasciicircum{} 2 = tauonicInputMax \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 := by
+  unfold tauonMaxEjection
+  exact velocity\_\allowbreak{}law\_\allowbreak{}five \_\allowbreak{} \_\allowbreak{} massRatioTauon\_\allowbreak{}pos.le
+\mbox{}
+/-- `vf ≈ 4.2403 × 10¹² m/s` for the tauonic ceiling. -/
+theorem tauonMaxEjection\_\allowbreak{}bounds :
+    (4.2403 : ℝ) * 10 \textasciicircum{} 12 ≤ tauonMaxEjection ∧
+      tauonMaxEjection ≤ (4.2404 : ℝ) * 10 \textasciicircum{} 12 := by
+  have hb := muonMaxEjection\_\allowbreak{}bounds
+  have hsq₁ : ((2.06820 : ℝ) * 10 \textasciicircum{} 7) \textasciicircum{} 2 ≤ tauonicInputMax \textasciicircum{} 2 := by
+    rw [tauonicInputMax]
+    exact pow\_\allowbreak{}le\_\allowbreak{}pow\_\allowbreak{}left₀ (show (0 : ℝ) ≤ (2.06820 : ℝ) * 10 \textasciicircum{} 7 by norm\_\allowbreak{}num) hb.1 2
+  have hsq₂ : tauonicInputMax \textasciicircum{} 2 ≤ ((2.06821 : ℝ) * 10 \textasciicircum{} 7) \textasciicircum{} 2 := by
+    rw [tauonicInputMax]
+    exact pow\_\allowbreak{}le\_\allowbreak{}pow\_\allowbreak{}left₀ (by linarith [hb.1] : (0 : ℝ) ≤ muonMaxEjection) hb.2 2
+  have hp₁ := mul\_\allowbreak{}le\_\allowbreak{}mul\_\allowbreak{}of\_\allowbreak{}nonneg\_\allowbreak{}right hsq₁
+    (show (0 : ℝ) ≤ massRatioTauon \textasciicircum{} 3 by norm\_\allowbreak{}num [massRatioTauon])
+  have hp₂ := mul\_\allowbreak{}le\_\allowbreak{}mul\_\allowbreak{}of\_\allowbreak{}nonneg\_\allowbreak{}right hsq₂
+    (show (0 : ℝ) ≤ massRatioTauon \textasciicircum{} 3 by norm\_\allowbreak{}num [massRatioTauon])
+  have h₁ : ((4.2403 : ℝ) * 10 \textasciicircum{} 12) \textasciicircum{} 2 ≤ tauonicInputMax \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 := by
+    refine le\_\allowbreak{}trans ?\_\allowbreak{} hp₁
+    norm\_\allowbreak{}num [massRatioTauon]
+  have h₂ : tauonicInputMax \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 ≤ ((4.2404 : ℝ) * 10 \textasciicircum{} 12) \textasciicircum{} 2 := by
+    refine le\_\allowbreak{}trans hp₂ ?\_\allowbreak{}
+    norm\_\allowbreak{}num [massRatioTauon]
+  have := generalisedVelocity\_\allowbreak{}bounds (n := generalizedDimension)
+    (v₂ := tauonicInputMax) (r := massRatioTauon)
+    (a := (4.2403 : ℝ) * 10 \textasciicircum{} 12) (b := (4.2404 : ℝ) * 10 \textasciicircum{} 12)
+    (show (0 : ℝ) ≤ (4.2404 : ℝ) * 10 \textasciicircum{} 12 by norm\_\allowbreak{}num) h₁ h₂
+  simpa [tauonMaxEjection] using this
+\mbox{}
+/-- The tauonic ceiling is superluminal: the framework's rejection of the
+Lorentz factor is not optional decoration, it is what its own numbers require. -/
+theorem tauonMaxEjection\_\allowbreak{}superluminal : speedOfLight \textless{} tauonMaxEjection := by
+  have := tauonMaxEjection\_\allowbreak{}bounds.1
+  unfold speedOfLight
+  linarith
+\mbox{}
+/-- The tauonic input window is subluminal; only the output exceeds `c`. -/
+theorem tauonicInputMax\_\allowbreak{}subluminal : tauonicInputMax \textless{} speedOfLight := by
+  rw [tauonicInputMax]
+  exact muonMaxEjection\_\allowbreak{}subluminal
+\mbox{}
+/-! \#\# The tauonic figures of the source text
+\mbox{}
+The source states `vf ≈ 1.34 × 10¹² m/s` at the tauonic ceiling, and
+`vf ≈ 9.0 × 10¹⁰ m/s` at a median input of `500 000 km/h`.  The exact law gives
+`4.2403 × 10¹²` and `2.8477 × 10¹⁰`.  In both cases the printed value is `√10`
+too small: the source's own intermediate `vf² = 1.80 × 10²⁵ m²/s²` is correct,
+but its square root is taken as `1.34 × 10¹²` instead of `4.24 × 10¹²`.  The
+discrepancy is proved here rather than asserted, and both values are kept so
+that a reader can see exactly where the two diverge.
+-/
+\mbox{}
+/-- The tauonic ceiling ejection velocity as printed in the source text. -/
+def sourceTauonMaxVelocity : ℝ := 1.34 * 10 \textasciicircum{} 12
+\mbox{}
+/-- The tauonic median ejection velocity as printed in the source text. -/
+def sourceTauonMedianVelocity : ℝ := 9.0 * 10 \textasciicircum{} 10
+\mbox{}
+/-- The source figure, squared, falls short of the law by a factor of `10.01`:
+the printed value is `√10` too small. -/
+theorem source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}underestimates :
+    (10.01 : ℝ) ≤ tauonMaxEjection \textasciicircum{} 2 / sourceTauonMaxVelocity \textasciicircum{} 2 ∧
+      tauonMaxEjection \textasciicircum{} 2 / sourceTauonMaxVelocity \textasciicircum{} 2 ≤ (10.02 : ℝ) := by
+  obtain ⟨h₁, h₂⟩ := tauonMaxEjection\_\allowbreak{}bounds
+  have hsq₁ : ((4.2403 : ℝ) * 10 \textasciicircum{} 12) \textasciicircum{} 2 ≤ tauonMaxEjection \textasciicircum{} 2 :=
+    pow\_\allowbreak{}le\_\allowbreak{}pow\_\allowbreak{}left₀ (show (0 : ℝ) ≤ (4.2403 : ℝ) * 10 \textasciicircum{} 12 by norm\_\allowbreak{}num) h₁ 2
+  have hsq₂ : tauonMaxEjection \textasciicircum{} 2 ≤ ((4.2404 : ℝ) * 10 \textasciicircum{} 12) \textasciicircum{} 2 :=
+    pow\_\allowbreak{}le\_\allowbreak{}pow\_\allowbreak{}left₀ (by linarith : (0 : ℝ) ≤ tauonMaxEjection) h₂ 2
+  unfold sourceTauonMaxVelocity
+  constructor
+  · rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+  · rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+\mbox{}
+/-- Consequently the source figure underestimates the ejection velocity itself by
+the factor `√10 ≈ 3.164`. -/
+theorem source\_\allowbreak{}tauon\_\allowbreak{}max\_\allowbreak{}velocity\_\allowbreak{}factor :
+    (3.164 : ℝ) ≤ tauonMaxEjection / sourceTauonMaxVelocity ∧
+      tauonMaxEjection / sourceTauonMaxVelocity ≤ (3.165 : ℝ) := by
+  obtain ⟨h₁, h₂⟩ := tauonMaxEjection\_\allowbreak{}bounds
+  unfold sourceTauonMaxVelocity
+  constructor
+  · rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+  · rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+\mbox{}
+/-- Tauonic ejection velocity at the entry velocity of the tauonic window. -/
+def tauonEntryEjection : ℝ :=
+  generalisedVelocity generalizedDimension collisionVelocityMuonMax massRatioTauon
+\mbox{}
+/-- `vf ≈ 1.4238 × 10⁹ m/s` at the tauonic entry velocity: the source's
+`1.42 × 10⁹` is correct here, because this `vf²` happens to carry an even
+decimal exponent. -/
+theorem tauonEntryEjection\_\allowbreak{}bounds :
+    (1.4237 : ℝ) * 10 \textasciicircum{} 9 ≤ tauonEntryEjection ∧
+      tauonEntryEjection ≤ (1.4239 : ℝ) * 10 \textasciicircum{} 9 := by
+  have h₁ : ((1.4237 : ℝ) * 10 \textasciicircum{} 9) \textasciicircum{} 2 ≤
+      collisionVelocityMuonMax \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 := by
+    rw [collisionVelocityMuonMax\_\allowbreak{}eq]
+    norm\_\allowbreak{}num [massRatioTauon]
+  have h₂ : collisionVelocityMuonMax \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 ≤
+      ((1.4239 : ℝ) * 10 \textasciicircum{} 9) \textasciicircum{} 2 := by
+    rw [collisionVelocityMuonMax\_\allowbreak{}eq]
+    norm\_\allowbreak{}num [massRatioTauon]
+  have := generalisedVelocity\_\allowbreak{}bounds (n := generalizedDimension)
+    (v₂ := collisionVelocityMuonMax) (r := massRatioTauon)
+    (a := (1.4237 : ℝ) * 10 \textasciicircum{} 9) (b := (1.4239 : ℝ) * 10 \textasciicircum{} 9)
+    (show (0 : ℝ) ≤ (1.4239 : ℝ) * 10 \textasciicircum{} 9 by norm\_\allowbreak{}num) h₁ h₂
+  simpa [tauonEntryEjection] using this
+\mbox{}
+/-- Tauonic ejection velocity at a median input of `500 000 km/h`. -/
+def tauonMedianEjection : ℝ :=
+  generalisedVelocity generalizedDimension (kmhToMs 500000) massRatioTauon
+\mbox{}
+/-- `vf ≈ 2.8477 × 10¹⁰ m/s` at the median input — not the `9.0 × 10¹⁰` printed
+in the source, which carries the same `√10` slip. -/
+theorem tauonMedianEjection\_\allowbreak{}bounds :
+    (2.8475 : ℝ) * 10 \textasciicircum{} 10 ≤ tauonMedianEjection ∧
+      tauonMedianEjection ≤ (2.8476 : ℝ) * 10 \textasciicircum{} 10 := by
+  have hvm : kmhToMs 500000 = 1250000 / 9 := by
+    unfold kmhToMs
+    norm\_\allowbreak{}num
+  have h₁ : ((2.8475 : ℝ) * 10 \textasciicircum{} 10) \textasciicircum{} 2 ≤
+      kmhToMs 500000 \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 := by
+    rw [hvm]
+    norm\_\allowbreak{}num [massRatioTauon]
+  have h₂ : kmhToMs 500000 \textasciicircum{} 2 * massRatioTauon \textasciicircum{} 3 ≤
+      ((2.8476 : ℝ) * 10 \textasciicircum{} 10) \textasciicircum{} 2 := by
+    rw [hvm]
+    norm\_\allowbreak{}num [massRatioTauon]
+  have := generalisedVelocity\_\allowbreak{}bounds (n := generalizedDimension)
+    (v₂ := kmhToMs 500000) (r := massRatioTauon)
+    (a := (2.8475 : ℝ) * 10 \textasciicircum{} 10) (b := (2.8476 : ℝ) * 10 \textasciicircum{} 10)
+    (show (0 : ℝ) ≤ (2.8476 : ℝ) * 10 \textasciicircum{} 10 by norm\_\allowbreak{}num) h₁ h₂
+  simpa [tauonMedianEjection] using this
+\mbox{}
+end
+\mbox{}
+end TheoreticalFramework
+\mbox{}
+}
+
+\clearpage
+
+
+\subsection*{\texttt{TheoreticalFramework/Regimes.lean}}
+\vspace{2pt}
+{\ttfamily\scriptsize\setlength{\parindent}{0pt}\setlength{\baselineskip}{7.6pt}\setlength{\parskip}{0pt}\raggedright\obeyspaces\obeylines
+/-
+\# TheoreticalFramework.Regimes
+\mbox{}
+The two nested propulsive regimes, their continuity at the domain boundary, the
+structural algebra of the amplification factor, and an exact treatment of what
+the framework does *not* fix: thrust.
+\mbox{}
+Structure of the argument.
+\mbox{}
+* A `PropulsiveRegime` is a mass ratio together with the window of admissible
+  collision velocities `v₂` and the law-induced output.  Both regimes are
+  instances, so everything proved about `PropulsiveRegime` applies to both.
+* The muonic window is `]0, 25 000 km/h]`; the tauonic window runs from
+  `25 000 km/h` to the muonic regime's *output* ceiling, `≈ 20 682 km/s`.
+  Hence the windows tile one interval (`regimes\_\allowbreak{}tile`), the tauonic window is
+  nested inside the muonic output range (`tauonic\_\allowbreak{}window\_\allowbreak{}nested\_\allowbreak{}in\_\allowbreak{}output`), and
+  the output ceiling of the first regime is the input ceiling of the second
+  (`chain\_\allowbreak{}closes`).  That is the exact content of the continuity claim.
+* The amplification `r ↦ r\textasciicircum{}(n−2)` is a multiplicative character
+  (`amplification\_\allowbreak{}mul`), so the tauonic factor factors through the muonic one.
+* Thrust is *not* determined by the geometry.  The kinematics fix the exhaust
+  velocity and the thrust-to-power ratio `T/P = 2/v\_\allowbreak{}e` exactly; the absolute
+  thrust is free (`thrust\_\allowbreak{}not\_\allowbreak{}determined`).  What remains is an engineering
+  question, recorded as `ThrustOptimizationConjecture` and left unproven, which
+  is what the framework claims and no more.
+-/
+import TheoreticalFramework.Velocity
+\mbox{}
+set\_\allowbreak{}option linter.unusedVariables false
+\mbox{}
+namespace TheoreticalFramework
+\mbox{}
+noncomputable section
+\mbox{}
+/-! \#\# Amplification as a multiplicative character -/
+\mbox{}
+/-- The amplification factor is multiplicative in the mass ratio: chaining two
+mass scales multiplies the amplification.  This is what makes the regimes
+composable rather than merely analogous. -/
+theorem amplification\_\allowbreak{}mul (r₁ r₂ : ℝ) :
+    (r₁ * r₂) \textasciicircum{} velocityExponent = r₁ \textasciicircum{} velocityExponent * r₂ \textasciicircum{} velocityExponent :=
+  mul\_\allowbreak{}pow r₁ r₂ \_\allowbreak{}
+\mbox{}
+/-- The amplification is strictly increasing in the mass ratio on the positive
+axis: heavier collision partners amplify more. -/
+theorem amplification\_\allowbreak{}strictMono :
+    StrictMonoOn (fun r : ℝ =\textgreater{} r \textasciicircum{} velocityExponent) (Set.Ioi 0) := by
+  intro r₁ hr₁ r₂ hr₂ hlt
+  exact pow\_\allowbreak{}lt\_\allowbreak{}pow\_\allowbreak{}left₀ hlt (le\_\allowbreak{}of\_\allowbreak{}lt hr₁) (by decide)
+\mbox{}
+/-- The tauonic amplification is the muonic one times the amplification of the
+residual ratio `m\_\allowbreak{}τ/m\_\allowbreak{}μ`: `3477³ = 207³ · (3477/207)³`. -/
+theorem tauon\_\allowbreak{}amplification\_\allowbreak{}factors :
+    tauonAmplification = muonAmplification * (massRatioTauon / massRatioMuon) \textasciicircum{} velocityExponent := by
+  unfold tauonAmplification muonAmplification
+  rw [div\_\allowbreak{}pow, mul\_\allowbreak{}div\_\allowbreak{}cancel₀ \_\allowbreak{} (pow\_\allowbreak{}ne\_\allowbreak{}zero \_\allowbreak{} (ne\_\allowbreak{}of\_\allowbreak{}gt massRatioMuon\_\allowbreak{}pos))]
+\mbox{}
+/-! \#\# The ejection velocity never falls below the collision velocity -/
+\mbox{}
+/-- For a mass ratio at least one, the ejection velocity is at least the
+collision velocity.  This is what lets the tauonic window start where the muonic
+window ends. -/
+theorem generalisedVelocity\_\allowbreak{}ge\_\allowbreak{}input \{n : ℕ\} \{v₂ r : ℝ\} (hr : 1 ≤ r) :
+    v₂ ≤ generalisedVelocity n v₂ r := by
+  have hone : (1 : ℝ) ≤ r \textasciicircum{} (n - 2) := one\_\allowbreak{}le\_\allowbreak{}pow₀ hr
+  have hsq : v₂ \textasciicircum{} 2 ≤ v₂ \textasciicircum{} 2 * r \textasciicircum{} (n - 2) := le\_\allowbreak{}mul\_\allowbreak{}of\_\allowbreak{}one\_\allowbreak{}le\_\allowbreak{}right (sq\_\allowbreak{}nonneg v₂) hone
+  exact Real.le\_\allowbreak{}sqrt\_\allowbreak{}of\_\allowbreak{}sq\_\allowbreak{}le hsq
+\mbox{}
+theorem one\_\allowbreak{}le\_\allowbreak{}massRatioMuon : (1 : ℝ) ≤ massRatioMuon := by
+  norm\_\allowbreak{}num [massRatioMuon]
+\mbox{}
+theorem one\_\allowbreak{}le\_\allowbreak{}massRatioTauon : (1 : ℝ) ≤ massRatioTauon := by
+  norm\_\allowbreak{}num [massRatioTauon]
+\mbox{}
+/-! \#\# Regimes -/
+\mbox{}
+/-- A propulsive regime of the framework: a charged-lepton mass ratio, the
+window of admissible collision velocities, and the law-induced quantities
+derived from them. -/
+structure PropulsiveRegime where
+  /-- Display name of the regime. -/
+  name : String
+  /-- Colliding particle, for the record. -/
+  particle : String
+  /-- Mass ratio `m\_\allowbreak{}ℓ/m\_\allowbreak{}e` of the colliding leptons. -/
+  massRatio : ℝ
+  massRatio\_\allowbreak{}pos : 0 \textless{} massRatio
+  /-- Lower end of the admissible input window, in m/s. -/
+  inputLower : ℝ
+  /-- Upper end of the admissible input window, in m/s. -/
+  inputUpper : ℝ
+  input\_\allowbreak{}window : inputLower ≤ inputUpper
+\mbox{}
+namespace PropulsiveRegime
+\mbox{}
+/-- Amplification factor of the regime, `(m\_\allowbreak{}ℓ/m\_\allowbreak{}e)\textasciicircum{}(n−2)`. -/
+def amplification (R : PropulsiveRegime) : ℝ := R.massRatio \textasciicircum{} velocityExponent
+\mbox{}
+/-- Maximum ejection velocity of the regime, at the top of its input window. -/
+def maxOutput (R : PropulsiveRegime) : ℝ :=
+  generalisedVelocity generalizedDimension R.inputUpper R.massRatio
+\mbox{}
+/-- The input window as a set. -/
+def window (R : PropulsiveRegime) : Set ℝ := Set.Icc R.inputLower R.inputUpper
+\mbox{}
+/-- The regime's maximum output obeys the velocity law. -/
+theorem maxOutput\_\allowbreak{}sq (R : PropulsiveRegime) :
+    R.maxOutput \textasciicircum{} 2 = R.inputUpper \textasciicircum{} 2 * R.massRatio \textasciicircum{} 3 := by
+  unfold maxOutput
+  exact velocity\_\allowbreak{}law\_\allowbreak{}five \_\allowbreak{} \_\allowbreak{} (le\_\allowbreak{}of\_\allowbreak{}lt R.massRatio\_\allowbreak{}pos)
+\mbox{}
+/-- The maximum output is at least the input ceiling. -/
+theorem inputUpper\_\allowbreak{}le\_\allowbreak{}maxOutput (R : PropulsiveRegime) (h : 1 ≤ R.massRatio) :
+    R.inputUpper ≤ R.maxOutput :=
+  generalisedVelocity\_\allowbreak{}ge\_\allowbreak{}input h
+\mbox{}
+/-- Within a regime the velocity law is continuous in the collision velocity. -/
+theorem continuous\_\allowbreak{}maxOutput (R : PropulsiveRegime) :
+    Continuous fun v₂ : ℝ =\textgreater{} generalisedVelocity generalizedDimension v₂ R.massRatio := by
+  unfold generalisedVelocity
+  exact Real.continuous\_\allowbreak{}sqrt.comp (by fun\_\allowbreak{}prop)
+\mbox{}
+/-- Within a regime the velocity law is continuous in the mass ratio. -/
+theorem continuous\_\allowbreak{}in\_\allowbreak{}massRatio (R : PropulsiveRegime) (v₂ : ℝ) :
+    Continuous fun r : ℝ =\textgreater{} generalisedVelocity generalizedDimension v₂ r := by
+  unfold generalisedVelocity
+  refine Real.continuous\_\allowbreak{}sqrt.comp ?\_\allowbreak{}
+  exact continuous\_\allowbreak{}const.mul (continuous\_\allowbreak{}id.pow \_\allowbreak{})
+\mbox{}
+end PropulsiveRegime
+\mbox{}
+/-- **The muonic regime.**  Muon–muon collisions, mass ratio `207`, collision
+velocities up to `25 000 km/h`; replaces chemical propellants. -/
+def muonicRegime : PropulsiveRegime where
+  name := "muonic"
+  particle := "μ⁻/μ⁺"
+  massRatio := massRatioMuon
+  massRatio\_\allowbreak{}pos := massRatioMuon\_\allowbreak{}pos
+  inputLower := 0
+  inputUpper := collisionVelocityMuonMax
+  input\_\allowbreak{}window := by
+    have h := collisionVelocityMuonMax\_\allowbreak{}bounds.1
+    linarith
+\mbox{}
+/-- **The tauonic regime.**  Tauon–tauon collisions, mass ratio `3477`, input
+window from the muonic ceiling up to the muonic regime's output ceiling. -/
+def tauonicRegime : PropulsiveRegime where
+  name := "tauonic"
+  particle := "τ⁻/τ⁺"
+  massRatio := massRatioTauon
+  massRatio\_\allowbreak{}pos := massRatioTauon\_\allowbreak{}pos
+  inputLower := collisionVelocityMuonMax
+  inputUpper := tauonicInputMax
+  input\_\allowbreak{}window := by
+    have h := generalisedVelocity\_\allowbreak{}ge\_\allowbreak{}input
+      (n := generalizedDimension) (v₂ := collisionVelocityMuonMax) (r := massRatioMuon)
+      one\_\allowbreak{}le\_\allowbreak{}massRatioMuon
+    simpa [tauonicInputMax, muonMaxEjection] using h
+\mbox{}
+/-- The muonic amplification, through the structure. -/
+theorem muonicRegime\_\allowbreak{}amplification :
+    muonicRegime.amplification = muonAmplification := by
+  unfold PropulsiveRegime.amplification muonicRegime muonAmplification
+  rfl
+\mbox{}
+/-- The tauonic amplification, through the structure. -/
+theorem tauonicRegime\_\allowbreak{}amplification :
+    tauonicRegime.amplification = tauonAmplification := by
+  unfold PropulsiveRegime.amplification tauonicRegime tauonAmplification
+  rfl
+\mbox{}
+/-- The regime hierarchy is strict: the tauonic amplification exceeds the
+muonic one by `≈ 4.74 × 10³`. -/
+theorem regimes\_\allowbreak{}strictly\_\allowbreak{}ordered :
+    muonicRegime.amplification \textless{} tauonicRegime.amplification := by
+  rw [muonicRegime\_\allowbreak{}amplification, tauonicRegime\_\allowbreak{}amplification,
+    muonAmplification\_\allowbreak{}eq, tauonAmplification\_\allowbreak{}eq]
+  norm\_\allowbreak{}num
+\mbox{}
+/-- The muonic regime's output ceiling, through the structure. -/
+theorem muonicRegime\_\allowbreak{}maxOutput : muonicRegime.maxOutput = muonMaxEjection := by
+  unfold PropulsiveRegime.maxOutput muonicRegime muonMaxEjection
+  rfl
+\mbox{}
+/-- The tauonic regime's output ceiling, through the structure. -/
+theorem tauonicRegime\_\allowbreak{}maxOutput : tauonicRegime.maxOutput = tauonMaxEjection := by
+  unfold PropulsiveRegime.maxOutput tauonicRegime tauonMaxEjection
+  rfl
+\mbox{}
+/-! \#\# Continuity at the domain boundary -/
+\mbox{}
+/-- **Adjacency.**  The tauonic window begins exactly where the muonic window
+ends: `25 000 km/h`, the muonic collision ceiling. -/
+theorem windows\_\allowbreak{}adjacent : muonicRegime.inputUpper = tauonicRegime.inputLower := rfl
+\mbox{}
+/-- **The chain closes.**  The upper end of the tauonic *input* window is the
+muonic regime's maximum *output*.  This is the boundary the framework calls
+`v₂ = 20 700 km/s`, and taking the unrounded value is what makes the match
+exact rather than approximate. -/
+theorem chain\_\allowbreak{}closes : tauonicRegime.inputUpper = muonicRegime.maxOutput := rfl
+\mbox{}
+/-- **Tiling.**  The two input windows cover one interval with no gap and no
+overlap. -/
+theorem regimes\_\allowbreak{}tile :
+    muonicRegime.window ∪ tauonicRegime.window
+      = Set.Icc (0 : ℝ) tauonicRegime.inputUpper := by
+  ext v
+  simp only [PropulsiveRegime.window, muonicRegime, tauonicRegime, Set.mem\_\allowbreak{}union,
+    Set.mem\_\allowbreak{}Icc]
+  constructor
+  · rintro (⟨h₀, h₁⟩ | ⟨h₁, h₂⟩)
+    · exact ⟨h₀, le\_\allowbreak{}trans h₁ (by
+        have := generalisedVelocity\_\allowbreak{}ge\_\allowbreak{}input (n := generalizedDimension)
+          (v₂ := collisionVelocityMuonMax) (r := massRatioMuon) one\_\allowbreak{}le\_\allowbreak{}massRatioMuon
+        simpa [tauonicInputMax, muonMaxEjection] using this)⟩
+    · exact ⟨le\_\allowbreak{}trans (by
+        have := collisionVelocityMuonMax\_\allowbreak{}bounds
+        linarith [this.1]) h₁, h₂⟩
+  · rintro ⟨h₀, h₂⟩
+    rcases le\_\allowbreak{}total v collisionVelocityMuonMax with h | h
+    · exact Or.inl ⟨h₀, h⟩
+    · exact Or.inr ⟨h, h₂⟩
+\mbox{}
+/-- **Nesting.**  The tauonic window lies inside the muonic regime's output
+range: the second regime's inputs are the first regime's reachable outputs. -/
+theorem tauonic\_\allowbreak{}window\_\allowbreak{}nested\_\allowbreak{}in\_\allowbreak{}output :
+    tauonicRegime.window ⊆ Set.Ioc (0 : ℝ) muonicRegime.maxOutput := by
+  intro v hv
+  have h := regimes\_\allowbreak{}tile
+  simp only [PropulsiveRegime.window, tauonicRegime, Set.mem\_\allowbreak{}Icc] at hv
+  refine ⟨?\_\allowbreak{}, ?\_\allowbreak{}⟩
+  · have := collisionVelocityMuonMax\_\allowbreak{}bounds
+    linarith [hv.1]
+  · rw [tauonicInputMax] at hv
+    exact hv.2
+\mbox{}
+/-- **The domain boundary.**  The boundary of the source's §8.2, `v₂ = 20 700 km/s`,
+is the tauonic input ceiling, and it is the muonic output ceiling unrounded. -/
+def domainBoundary : ℝ := tauonicRegime.inputUpper
+\mbox{}
+/-- The boundary is the muonic regime's maximum output. -/
+theorem domainBoundary\_\allowbreak{}eq\_\allowbreak{}muonic\_\allowbreak{}output : domainBoundary = muonicRegime.maxOutput := rfl
+\mbox{}
+/-- The boundary is the muonic ejection ceiling, hence `≈ 20 700 km/s`. -/
+theorem domainBoundary\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s :
+    (2.068 : ℝ) * 10 \textasciicircum{} 4 ≤ domainBoundary / 1000 ∧
+      domainBoundary / 1000 ≤ (2.07 : ℝ) * 10 \textasciicircum{} 4 := by
+  simpa [domainBoundary, tauonicRegime, tauonicInputMax] using muonMaxEjection\_\allowbreak{}km\_\allowbreak{}per\_\allowbreak{}s
+\mbox{}
+/-- The boundary itself is subluminal; it is the tauonic *output* that exceeds
+`c`, not the input ceiling that defines the hand-off. -/
+theorem domainBoundary\_\allowbreak{}subluminal : domainBoundary \textless{} speedOfLight := by
+  simpa [domainBoundary, tauonicRegime, tauonicInputMax] using muonMaxEjection\_\allowbreak{}subluminal
+\mbox{}
+/-- **Continuity of the two-regime structure**, collected in one statement: the
+windows are adjacent, the chain closes on the muonic output ceiling, they tile
+an interval, and the law is continuous in the collision velocity throughout. -/
+theorem regime\_\allowbreak{}continuity :
+    muonicRegime.inputUpper = tauonicRegime.inputLower ∧
+      tauonicRegime.inputUpper = muonicRegime.maxOutput ∧
+      muonicRegime.window ∪ tauonicRegime.window
+        = Set.Icc (0 : ℝ) tauonicRegime.inputUpper ∧
+      Continuous (fun v₂ : ℝ =\textgreater{}
+        generalisedVelocity generalizedDimension v₂ muonicRegime.massRatio) ∧
+      Continuous (fun v₂ : ℝ =\textgreater{}
+        generalisedVelocity generalizedDimension v₂ tauonicRegime.massRatio) :=
+  ⟨windows\_\allowbreak{}adjacent, chain\_\allowbreak{}closes, regimes\_\allowbreak{}tile,
+    muonicRegime.continuous\_\allowbreak{}maxOutput, tauonicRegime.continuous\_\allowbreak{}maxOutput⟩
+\mbox{}
+/-! \#\# Thrust: what the framework fixes and what it does not
+\mbox{}
+The kinematics fix the exhaust velocity.  Momentum and energy balance then fix
+the thrust-to-power ratio exactly, `T/P = 2/v\_\allowbreak{}e`, and nothing else: the absolute
+thrust is set by mass flow and power, which are engineering parameters.  This is
+the precise sense in which "empirical thrust optimisation" is outside the
+framework, and it is proved rather than asserted.
+-/
+\mbox{}
+/-- A thruster design obeying the framework's momentum and energy balance. -/
+structure ThrusterDesign where
+  /-- Exhaust velocity of the propulsive particles, m/s. -/
+  exhaustVelocity : ℝ
+  exhaustVelocity\_\allowbreak{}pos : 0 \textless{} exhaustVelocity
+  /-- Propellant mass flow, kg/s. -/
+  massFlow : ℝ
+  massFlow\_\allowbreak{}pos : 0 \textless{} massFlow
+  /-- Thrust, N: momentum flux `ṁ·v\_\allowbreak{}e`. -/
+  thrust : ℝ
+  thrust\_\allowbreak{}eq : thrust = massFlow * exhaustVelocity
+  /-- Jet power, W: kinetic energy flux `½·ṁ·v\_\allowbreak{}e²`. -/
+  jetPower : ℝ
+  power\_\allowbreak{}eq : jetPower = massFlow * exhaustVelocity \textasciicircum{} 2 / 2
+\mbox{}
+/-- Vacuum exhaust velocity of the Raptor benchmark. -/
+def raptorExhaustVelocity : ℝ := raptorSpecificImpulse * standardGravity
+\mbox{}
+/-- **The thrust–power tradeoff.**  For any design, `T/P = 2/v\_\allowbreak{}e` exactly.  High
+specific impulse costs thrust per watt, without exception. -/
+theorem thrust\_\allowbreak{}to\_\allowbreak{}power (d : ThrusterDesign) :
+    d.thrust / d.jetPower = 2 / d.exhaustVelocity := by
+  rw [d.thrust\_\allowbreak{}eq, d.power\_\allowbreak{}eq]
+  field\_\allowbreak{}simp [ne\_\allowbreak{}of\_\allowbreak{}gt d.massFlow\_\allowbreak{}pos, ne\_\allowbreak{}of\_\allowbreak{}gt d.exhaustVelocity\_\allowbreak{}pos]
+\mbox{}
+/-- Thrust in terms of jet power and exhaust velocity. -/
+theorem thrust\_\allowbreak{}eq\_\allowbreak{}power (d : ThrusterDesign) :
+    d.thrust = 2 * d.jetPower / d.exhaustVelocity := by
+  rw [d.thrust\_\allowbreak{}eq, d.power\_\allowbreak{}eq]
+  field\_\allowbreak{}simp [ne\_\allowbreak{}of\_\allowbreak{}gt d.exhaustVelocity\_\allowbreak{}pos]
+\mbox{}
+/-- At the muonic ceiling, thrust per watt is `≈ 9.67 × 10⁻⁸ N/W`. -/
+theorem muonic\_\allowbreak{}thrust\_\allowbreak{}to\_\allowbreak{}power\_\allowbreak{}bounds (d : ThrusterDesign)
+    (h : d.exhaustVelocity = muonMaxEjection) :
+    (96 : ℝ) / 10 \textasciicircum{} 9 ≤ d.thrust / d.jetPower ∧
+      d.thrust / d.jetPower ≤ (97 : ℝ) / 10 \textasciicircum{} 9 := by
+  rw [thrust\_\allowbreak{}to\_\allowbreak{}power, h]
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection\_\allowbreak{}bounds
+  constructor
+  · rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ (by linarith)]
+    nlinarith
+  · rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by linarith)]
+    nlinarith
+\mbox{}
+/-- The muonic exhaust velocity is `≈ 5.8 × 10³` times the Raptor exhaust
+velocity, so its thrust per watt is that many times *worse*: the specific-impulse
+gain and the thrust-per-watt loss are the same number. -/
+theorem muonic\_\allowbreak{}thrust\_\allowbreak{}to\_\allowbreak{}power\_\allowbreak{}shortfall :
+    (5.80 : ℝ) * 10 \textasciicircum{} 3 ≤ muonMaxEjection / raptorExhaustVelocity ∧
+      muonMaxEjection / raptorExhaustVelocity ≤ (5.82 : ℝ) * 10 \textasciicircum{} 3 := by
+  have hrv : raptorExhaustVelocity = 363 * 9.80665 := by
+    unfold raptorExhaustVelocity raptorSpecificImpulse standardGravity
+    norm\_\allowbreak{}num
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection\_\allowbreak{}bounds
+  constructor
+  · rw [hrv, le\_\allowbreak{}div\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+  · rw [hrv, div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num)]
+    nlinarith
+\mbox{}
+/-- **Thrust is not determined by the geometry.**  At the exhaust velocity the
+leptonic kinematics fix, any positive thrust is attainable by a suitable design:
+thrust is bought with mass flow and power, not with the velocity law. -/
+theorem thrust\_\allowbreak{}not\_\allowbreak{}determined (T : ℝ) (hT : 0 \textless{} T) :
+    ∃ d : ThrusterDesign, d.exhaustVelocity = muonMaxEjection ∧ d.thrust = T := by
+  have hv : 0 \textless{} muonMaxEjection := by
+    have := muonMaxEjection\_\allowbreak{}bounds.1
+    linarith
+  refine ⟨\{ exhaustVelocity := muonMaxEjection, exhaustVelocity\_\allowbreak{}pos := hv,
+            massFlow := T / muonMaxEjection, massFlow\_\allowbreak{}pos := div\_\allowbreak{}pos hT hv,
+            thrust := T, thrust\_\allowbreak{}eq := ?\_\allowbreak{}, jetPower := T * muonMaxEjection / 2,
+            power\_\allowbreak{}eq := ?\_\allowbreak{} \}, rfl, rfl⟩
+  · field\_\allowbreak{}simp
+  · field\_\allowbreak{}simp
+\mbox{}
+/-- The engineering question the framework leaves open: at the exhaust velocity
+the geometry fixes, is there a design reaching a thrust target `T` within a
+power budget `P`?  Nothing in the geometric development decides it — see
+`thrust\_\allowbreak{}not\_\allowbreak{}determined` — so it is recorded, not proved. -/
+def ThrustOptimizationConjecture (T P : ℝ) : Prop :=
+  ∃ d : ThrusterDesign, d.exhaustVelocity = muonMaxEjection ∧ d.thrust = T ∧ d.jetPower ≤ P
+\mbox{}
+/-- The conjecture is not vacuous: a large enough power budget always suffices,
+because the thrust–power relation is a hyperbola and nothing else constrains it. -/
+theorem thrust\_\allowbreak{}optimization\_\allowbreak{}satisfiable (T : ℝ) (hT : 0 \textless{} T) :
+    ThrustOptimizationConjecture T (T * muonMaxEjection / 2 + 1) := by
+  obtain ⟨d, hv, hth⟩ := thrust\_\allowbreak{}not\_\allowbreak{}determined T hT
+  refine ⟨d, hv, hth, ?\_\allowbreak{}⟩
+  have hvpos : 0 \textless{} muonMaxEjection := by
+    have := muonMaxEjection\_\allowbreak{}bounds.1
+    linarith
+  have hmv : d.massFlow * d.exhaustVelocity = T := by
+    rw [← d.thrust\_\allowbreak{}eq, hth]
+  rw [hv] at hmv
+  have hmf : d.massFlow = T / muonMaxEjection := by
+    rw [eq\_\allowbreak{}div\_\allowbreak{}iff (ne\_\allowbreak{}of\_\allowbreak{}gt hvpos)]
+    linarith
+  have hp := d.power\_\allowbreak{}eq
+  rw [hv, hmf] at hp
+  rw [hp]
+  have hnorm : T / muonMaxEjection * muonMaxEjection \textasciicircum{} 2 / 2 = T * muonMaxEjection / 2 := by
+    field\_\allowbreak{}simp
+  rw [hnorm]
+  linarith
+\mbox{}
+/-- Consequently the thrust question is *empirical*, not geometric: the
+framework fixes `v\_\allowbreak{}e` and hence `T/P`, and leaves `(T, P)` free along that
+hyperbola.  This is the formal statement of "empirical thrust optimisations
+remain unproven". -/
+theorem thrust\_\allowbreak{}optimization\_\allowbreak{}is\_\allowbreak{}empirical (T P : ℝ) (hT : 0 \textless{} T) (hP : 0 \textless{} P)
+    (hpower : T ≤ 2 * P / muonMaxEjection) :
+    ThrustOptimizationConjecture T P := by
+  have hv : 0 \textless{} muonMaxEjection := by
+    have := muonMaxEjection\_\allowbreak{}bounds.1
+    linarith
+  refine ⟨\{ exhaustVelocity := muonMaxEjection, exhaustVelocity\_\allowbreak{}pos := hv,
+            massFlow := T / muonMaxEjection, massFlow\_\allowbreak{}pos := div\_\allowbreak{}pos hT hv,
+            thrust := T, thrust\_\allowbreak{}eq := ?\_\allowbreak{}, jetPower := T * muonMaxEjection / 2,
+            power\_\allowbreak{}eq := ?\_\allowbreak{} \}, rfl, rfl, ?\_\allowbreak{}⟩
+  · field\_\allowbreak{}simp
+  · field\_\allowbreak{}simp
+  · have hp : T * muonMaxEjection ≤ 2 * P := by
+      have h' := hpower
+      rw [le\_\allowbreak{}div\_\allowbreak{}iff₀ hv] at h'
+      linarith
+    show T * muonMaxEjection / 2 ≤ P
+    rw [div\_\allowbreak{}le\_\allowbreak{}iff₀ (by norm\_\allowbreak{}num : (0 : ℝ) \textless{} 2)]
+    linarith
+\mbox{}
+end
+\mbox{}
+end TheoreticalFramework
+\mbox{}
+}
+
+\clearpage
+
+\end{document}

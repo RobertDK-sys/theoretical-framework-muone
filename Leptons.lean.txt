@@ -1,0 +1,161 @@
+/-
+# TheoreticalFramework.Leptons
+
+Numerical instantiation of the compactness framework for the three charged
+leptons, and the Casimir amplification ratios of the muonic and tauonic regimes.
+
+The lepton masses enter only through the ratios `m_μ/m_e ≈ 207` and
+`m_τ/m_e ≈ 3477`.  Both integers are checked here against the tabulated masses
+(`0.511`, `105.66`, `1777` MeV/c²) at the precision at which the framework
+states them, and the amplification ratios are then computed exactly and bounded
+in the published orders of magnitude.
+-/
+import TheoreticalFramework.Basic
+
+namespace TheoreticalFramework
+
+noncomputable section
+
+/-! ## Lepton data -/
+
+/-- Electron mass, MeV/c². -/
+def massElectronMeV : ℝ := 0.511
+
+/-- Muon mass, MeV/c². -/
+def massMuonMeV : ℝ := 105.66
+
+/-- Tauon mass, MeV/c². -/
+def massTauonMeV : ℝ := 1777
+
+/-- Muon-to-electron mass ratio, as used throughout the framework. -/
+def massRatioMuon : ℝ := 207
+
+/-- Tauon-to-electron mass ratio, as used throughout the framework. -/
+def massRatioTauon : ℝ := 3477
+
+theorem massRatioMuon_pos : 0 < massRatioMuon := by
+  norm_num [massRatioMuon]
+
+theorem massRatioTauon_pos : 0 < massRatioTauon := by
+  norm_num [massRatioTauon]
+
+/-- The integer ratio `207` reproduces the tabulated muon/electron mass ratio to
+better than a quarter of a unit. -/
+theorem massRatioMuon_consistent :
+    |massMuonMeV / massElectronMeV - massRatioMuon| ≤ 0.25 := by
+  unfold massMuonMeV massElectronMeV massRatioMuon
+  rw [abs_le]
+  constructor <;> norm_num
+
+/-- The integer ratio `3477` reproduces the tabulated tauon/electron mass ratio
+to better than half a unit. -/
+theorem massRatioTauon_consistent :
+    |massTauonMeV / massElectronMeV - massRatioTauon| ≤ 0.5 := by
+  unfold massTauonMeV massElectronMeV massRatioTauon
+  rw [abs_le]
+  constructor <;> norm_num
+
+/-! ## Casimir amplification, muon and tauon versus electron
+
+The general ratio `casimirEnergy_ratio` is instantiated with masses
+`m_ℓ = (m_ℓ/m_e) · m_e`, so the result is a statement about the physics, not
+about a bare numeral.  The numeral is then evaluated exactly.
+-/
+
+/-- **Muonic Casimir amplification**, in the form `E_μ / E_e = (m_μ/m_e)⁵`. -/
+theorem casimir_amplification_muon_general {κ m₀ : ℝ} (hκ : κ ≠ 0) (hm : 0 < m₀) :
+    casimirEnergy κ (massRatioMuon * m₀) / casimirEnergy κ m₀ = massRatioMuon ^ 5 := by
+  rw [casimirEnergy_ratio hκ (mul_ne_zero massRatioMuon_pos.ne' hm.ne') hm.ne']
+  field_simp
+
+/-- **Tauonic Casimir amplification**, in the form `E_τ / E_e = (m_τ/m_e)⁵`. -/
+theorem casimir_amplification_tauon_general {κ m₀ : ℝ} (hκ : κ ≠ 0) (hm : 0 < m₀) :
+    casimirEnergy κ (massRatioTauon * m₀) / casimirEnergy κ m₀ = massRatioTauon ^ 5 := by
+  rw [casimirEnergy_ratio hκ (mul_ne_zero massRatioTauon_pos.ne' hm.ne') hm.ne']
+  field_simp
+
+/-- Exact value of the muonic amplification, `207⁵ = 380 059 617 807`. -/
+theorem massRatioMuon_pow_five : massRatioMuon ^ 5 = 380059617807 := by
+  norm_num [massRatioMuon]
+
+/-- Exact value of the tauonic amplification, `3477⁵ = 508 186 885 683 281 157`. -/
+theorem massRatioTauon_pow_five : massRatioTauon ^ 5 = 508186885683281157 := by
+  norm_num [massRatioTauon]
+
+/-- `(207)⁵ ≈ 4 × 10¹¹`: the amplification lies between `3.8 × 10¹¹` and `4 × 10¹¹`. -/
+theorem casimir_amplification_muon_order :
+    (3.8 : ℝ) * 10 ^ 11 ≤ massRatioMuon ^ 5 ∧ massRatioMuon ^ 5 ≤ 4 * 10 ^ 11 := by
+  rw [massRatioMuon_pow_five]
+  constructor <;> norm_num
+
+/-- `(3477)⁵ ≈ 5.1 × 10¹⁷`: the amplification lies between `5.08 × 10¹⁷` and `5.1 × 10¹⁷`. -/
+theorem casimir_amplification_tauon_order :
+    (5.08 : ℝ) * 10 ^ 17 ≤ massRatioTauon ^ 5 ∧ massRatioTauon ^ 5 ≤ (5.1 : ℝ) * 10 ^ 17 := by
+  rw [massRatioTauon_pow_five]
+  constructor <;> norm_num
+
+/-- The tauon amplifies the vacuum coupling by a further factor
+`(3477/207)⁵ ≈ 1.3 × 10⁶` over the muon. -/
+theorem casimir_amplification_tauon_over_muon :
+    (1.3 : ℝ) * 10 ^ 6 ≤ (massRatioTauon / massRatioMuon) ^ 5 ∧
+      (massRatioTauon / massRatioMuon) ^ 5 ≤ (1.34 : ℝ) * 10 ^ 6 := by
+  unfold massRatioTauon massRatioMuon
+  constructor <;> norm_num
+
+/-- The amplification is monotone in the mass ratio: the lepton hierarchy
+`e < μ < τ` is a strict hierarchy of vacuum couplings. -/
+theorem casimir_amplification_hierarchy :
+    (1 : ℝ) < massRatioMuon ^ 5 ∧ massRatioMuon ^ 5 < massRatioTauon ^ 5 := by
+  rw [massRatioMuon_pow_five, massRatioTauon_pow_five]
+  constructor <;> norm_num
+
+/-! ## Equivalent magnetic field, and where the exponent `3` comes from
+
+The source text associates the Casimir energy with an equivalent magnetic field
+through `B² ∝ E_C / Volume`.  Two volume ansätze are possible, and they give
+different exponents.  Both are proved here so that the framework's use of
+`B/B₀ ∝ m³` is tied to a stated assumption rather than left implicit.
+
+* With the source's volume ansatz `V ∝ S·d³` one gets `B² ∝ m⁶`, i.e. `B ∝ m³`.
+* With the geometrically literal plate volume `V = S·d` one gets `B² ∝ m⁴`, i.e. `B ∝ m²`.
+
+The first is the exponent the framework uses, and it coincides with the velocity
+exponent `n - 2 = 3`; the second is recorded because it is what a literal plate
+volume gives, and the discrepancy is a property of the ansatz, not of the
+algebra.
+-/
+
+/-- Equivalent-field amplification under the source's volume ansatz `V ∝ S·d³`:
+`B ∝ m³`. -/
+def fieldAmplificationSource (m₁ m₂ : ℝ) : ℝ := (m₁ / m₂) ^ 3
+
+/-- Equivalent-field amplification under the literal plate volume `V = S·d`:
+`B ∝ m²`. -/
+def fieldAmplificationPlate (m₁ m₂ : ℝ) : ℝ := (m₁ / m₂) ^ 2
+
+/-- Source ansatz: `B² ∝ E_C / (S·d³) ∝ m⁶`, hence `B ∝ m³`. -/
+theorem field_amplification_source (κ m₁ m₂ : ℝ) (hκ : 0 < κ) (h₁ : 0 < m₁) (h₂ : 0 < m₂) :
+    (casimirEnergy κ m₁ / (m₁ ^ 2 * effRadius κ m₁ ^ 3)) /
+        (casimirEnergy κ m₂ / (m₂ ^ 2 * effRadius κ m₂ ^ 3)) = (m₁ / m₂) ^ 6 := by
+  rw [casimirEnergy_eq_quintic hκ.ne' h₁.ne', casimirEnergy_eq_quintic hκ.ne' h₂.ne']
+  unfold effRadius
+  field_simp
+
+/-- Literal plate volume: `B² ∝ E_C / (S·d) ∝ m⁴`, hence `B ∝ m²`. -/
+theorem field_amplification_plate (κ m₁ m₂ : ℝ) (hκ : 0 < κ) (h₁ : 0 < m₁) (h₂ : 0 < m₂) :
+    (casimirEnergy κ m₁ / (m₁ ^ 2 * effRadius κ m₁)) /
+        (casimirEnergy κ m₂ / (m₂ ^ 2 * effRadius κ m₂)) = (m₁ / m₂) ^ 4 := by
+  rw [casimirEnergy_eq_quintic hκ.ne' h₁.ne', casimirEnergy_eq_quintic hκ.ne' h₂.ne']
+  unfold effRadius
+  field_simp
+
+/-- The source's field amplification for the muon, `(207)³ ≈ 9 × 10⁶`. -/
+theorem field_amplification_muon_order :
+    (8.8 : ℝ) * 10 ^ 6 ≤ fieldAmplificationSource massRatioMuon 1 ∧
+      fieldAmplificationSource massRatioMuon 1 ≤ (8.9 : ℝ) * 10 ^ 6 := by
+  unfold fieldAmplificationSource massRatioMuon
+  constructor <;> norm_num
+
+end
+
+end TheoreticalFramework

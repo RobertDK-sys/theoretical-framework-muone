@@ -1,0 +1,410 @@
+/-
+# TheoreticalFramework.Regimes
+
+The two nested propulsive regimes, their continuity at the domain boundary, the
+structural algebra of the amplification factor, and an exact treatment of what
+the framework does *not* fix: thrust.
+
+Structure of the argument.
+
+* A `PropulsiveRegime` is a mass ratio together with the window of admissible
+  collision velocities `v₂` and the law-induced output.  Both regimes are
+  instances, so everything proved about `PropulsiveRegime` applies to both.
+* The muonic window is `]0, 25 000 km/h]`; the tauonic window runs from
+  `25 000 km/h` to the muonic regime's *output* ceiling, `≈ 20 682 km/s`.
+  Hence the windows tile one interval (`regimes_tile`), the tauonic window is
+  nested inside the muonic output range (`tauonic_window_nested_in_output`), and
+  the output ceiling of the first regime is the input ceiling of the second
+  (`chain_closes`).  That is the exact content of the continuity claim.
+* The amplification `r ↦ r^(n−2)` is a multiplicative character
+  (`amplification_mul`), so the tauonic factor factors through the muonic one.
+* Thrust is *not* determined by the geometry.  The kinematics fix the exhaust
+  velocity and the thrust-to-power ratio `T/P = 2/v_e` exactly; the absolute
+  thrust is free (`thrust_not_determined`).  What remains is an engineering
+  question, recorded as `ThrustOptimizationConjecture` and left unproven, which
+  is what the framework claims and no more.
+-/
+import TheoreticalFramework.Velocity
+
+set_option linter.unusedVariables false
+
+namespace TheoreticalFramework
+
+noncomputable section
+
+/-! ## Amplification as a multiplicative character -/
+
+/-- The amplification factor is multiplicative in the mass ratio: chaining two
+mass scales multiplies the amplification.  This is what makes the regimes
+composable rather than merely analogous. -/
+theorem amplification_mul (r₁ r₂ : ℝ) :
+    (r₁ * r₂) ^ velocityExponent = r₁ ^ velocityExponent * r₂ ^ velocityExponent :=
+  mul_pow r₁ r₂ _
+
+/-- The amplification is strictly increasing in the mass ratio on the positive
+axis: heavier collision partners amplify more. -/
+theorem amplification_strictMono :
+    StrictMonoOn (fun r : ℝ => r ^ velocityExponent) (Set.Ioi 0) := by
+  intro r₁ hr₁ r₂ hr₂ hlt
+  exact pow_lt_pow_left₀ hlt (le_of_lt hr₁) (by decide)
+
+/-- The tauonic amplification is the muonic one times the amplification of the
+residual ratio `m_τ/m_μ`: `3477³ = 207³ · (3477/207)³`. -/
+theorem tauon_amplification_factors :
+    tauonAmplification = muonAmplification * (massRatioTauon / massRatioMuon) ^ velocityExponent := by
+  unfold tauonAmplification muonAmplification
+  rw [div_pow, mul_div_cancel₀ _ (pow_ne_zero _ (ne_of_gt massRatioMuon_pos))]
+
+/-! ## The ejection velocity never falls below the collision velocity -/
+
+/-- For a mass ratio at least one, the ejection velocity is at least the
+collision velocity.  This is what lets the tauonic window start where the muonic
+window ends. -/
+theorem generalisedVelocity_ge_input {n : ℕ} {v₂ r : ℝ} (hr : 1 ≤ r) :
+    v₂ ≤ generalisedVelocity n v₂ r := by
+  have hone : (1 : ℝ) ≤ r ^ (n - 2) := one_le_pow₀ hr
+  have hsq : v₂ ^ 2 ≤ v₂ ^ 2 * r ^ (n - 2) := le_mul_of_one_le_right (sq_nonneg v₂) hone
+  exact Real.le_sqrt_of_sq_le hsq
+
+theorem one_le_massRatioMuon : (1 : ℝ) ≤ massRatioMuon := by
+  norm_num [massRatioMuon]
+
+theorem one_le_massRatioTauon : (1 : ℝ) ≤ massRatioTauon := by
+  norm_num [massRatioTauon]
+
+/-! ## Regimes -/
+
+/-- A propulsive regime of the framework: a charged-lepton mass ratio, the
+window of admissible collision velocities, and the law-induced quantities
+derived from them. -/
+structure PropulsiveRegime where
+  /-- Display name of the regime. -/
+  name : String
+  /-- Colliding particle, for the record. -/
+  particle : String
+  /-- Mass ratio `m_ℓ/m_e` of the colliding leptons. -/
+  massRatio : ℝ
+  massRatio_pos : 0 < massRatio
+  /-- Lower end of the admissible input window, in m/s. -/
+  inputLower : ℝ
+  /-- Upper end of the admissible input window, in m/s. -/
+  inputUpper : ℝ
+  input_window : inputLower ≤ inputUpper
+
+namespace PropulsiveRegime
+
+/-- Amplification factor of the regime, `(m_ℓ/m_e)^(n−2)`. -/
+def amplification (R : PropulsiveRegime) : ℝ := R.massRatio ^ velocityExponent
+
+/-- Maximum ejection velocity of the regime, at the top of its input window. -/
+def maxOutput (R : PropulsiveRegime) : ℝ :=
+  generalisedVelocity generalizedDimension R.inputUpper R.massRatio
+
+/-- The input window as a set. -/
+def window (R : PropulsiveRegime) : Set ℝ := Set.Icc R.inputLower R.inputUpper
+
+/-- The regime's maximum output obeys the velocity law. -/
+theorem maxOutput_sq (R : PropulsiveRegime) :
+    R.maxOutput ^ 2 = R.inputUpper ^ 2 * R.massRatio ^ 3 := by
+  unfold maxOutput
+  exact velocity_law_five _ _ (le_of_lt R.massRatio_pos)
+
+/-- The maximum output is at least the input ceiling. -/
+theorem inputUpper_le_maxOutput (R : PropulsiveRegime) (h : 1 ≤ R.massRatio) :
+    R.inputUpper ≤ R.maxOutput :=
+  generalisedVelocity_ge_input h
+
+/-- Within a regime the velocity law is continuous in the collision velocity. -/
+theorem continuous_maxOutput (R : PropulsiveRegime) :
+    Continuous fun v₂ : ℝ => generalisedVelocity generalizedDimension v₂ R.massRatio := by
+  unfold generalisedVelocity
+  exact Real.continuous_sqrt.comp (by fun_prop)
+
+/-- Within a regime the velocity law is continuous in the mass ratio. -/
+theorem continuous_in_massRatio (R : PropulsiveRegime) (v₂ : ℝ) :
+    Continuous fun r : ℝ => generalisedVelocity generalizedDimension v₂ r := by
+  unfold generalisedVelocity
+  refine Real.continuous_sqrt.comp ?_
+  exact continuous_const.mul (continuous_id.pow _)
+
+end PropulsiveRegime
+
+/-- **The muonic regime.**  Muon–muon collisions, mass ratio `207`, collision
+velocities up to `25 000 km/h`; replaces chemical propellants. -/
+def muonicRegime : PropulsiveRegime where
+  name := "muonic"
+  particle := "μ⁻/μ⁺"
+  massRatio := massRatioMuon
+  massRatio_pos := massRatioMuon_pos
+  inputLower := 0
+  inputUpper := collisionVelocityMuonMax
+  input_window := by
+    have h := collisionVelocityMuonMax_bounds.1
+    linarith
+
+/-- **The tauonic regime.**  Tauon–tauon collisions, mass ratio `3477`, input
+window from the muonic ceiling up to the muonic regime's output ceiling. -/
+def tauonicRegime : PropulsiveRegime where
+  name := "tauonic"
+  particle := "τ⁻/τ⁺"
+  massRatio := massRatioTauon
+  massRatio_pos := massRatioTauon_pos
+  inputLower := collisionVelocityMuonMax
+  inputUpper := tauonicInputMax
+  input_window := by
+    have h := generalisedVelocity_ge_input
+      (n := generalizedDimension) (v₂ := collisionVelocityMuonMax) (r := massRatioMuon)
+      one_le_massRatioMuon
+    simpa [tauonicInputMax, muonMaxEjection] using h
+
+/-- The muonic amplification, through the structure. -/
+theorem muonicRegime_amplification :
+    muonicRegime.amplification = muonAmplification := by
+  unfold PropulsiveRegime.amplification muonicRegime muonAmplification
+  rfl
+
+/-- The tauonic amplification, through the structure. -/
+theorem tauonicRegime_amplification :
+    tauonicRegime.amplification = tauonAmplification := by
+  unfold PropulsiveRegime.amplification tauonicRegime tauonAmplification
+  rfl
+
+/-- The regime hierarchy is strict: the tauonic amplification exceeds the
+muonic one by `≈ 4.74 × 10³`. -/
+theorem regimes_strictly_ordered :
+    muonicRegime.amplification < tauonicRegime.amplification := by
+  rw [muonicRegime_amplification, tauonicRegime_amplification,
+    muonAmplification_eq, tauonAmplification_eq]
+  norm_num
+
+/-- The muonic regime's output ceiling, through the structure. -/
+theorem muonicRegime_maxOutput : muonicRegime.maxOutput = muonMaxEjection := by
+  unfold PropulsiveRegime.maxOutput muonicRegime muonMaxEjection
+  rfl
+
+/-- The tauonic regime's output ceiling, through the structure. -/
+theorem tauonicRegime_maxOutput : tauonicRegime.maxOutput = tauonMaxEjection := by
+  unfold PropulsiveRegime.maxOutput tauonicRegime tauonMaxEjection
+  rfl
+
+/-! ## Continuity at the domain boundary -/
+
+/-- **Adjacency.**  The tauonic window begins exactly where the muonic window
+ends: `25 000 km/h`, the muonic collision ceiling. -/
+theorem windows_adjacent : muonicRegime.inputUpper = tauonicRegime.inputLower := rfl
+
+/-- **The chain closes.**  The upper end of the tauonic *input* window is the
+muonic regime's maximum *output*.  This is the boundary the framework calls
+`v₂ = 20 700 km/s`, and taking the unrounded value is what makes the match
+exact rather than approximate. -/
+theorem chain_closes : tauonicRegime.inputUpper = muonicRegime.maxOutput := rfl
+
+/-- **Tiling.**  The two input windows cover one interval with no gap and no
+overlap. -/
+theorem regimes_tile :
+    muonicRegime.window ∪ tauonicRegime.window
+      = Set.Icc (0 : ℝ) tauonicRegime.inputUpper := by
+  ext v
+  simp only [PropulsiveRegime.window, muonicRegime, tauonicRegime, Set.mem_union,
+    Set.mem_Icc]
+  constructor
+  · rintro (⟨h₀, h₁⟩ | ⟨h₁, h₂⟩)
+    · exact ⟨h₀, le_trans h₁ (by
+        have := generalisedVelocity_ge_input (n := generalizedDimension)
+          (v₂ := collisionVelocityMuonMax) (r := massRatioMuon) one_le_massRatioMuon
+        simpa [tauonicInputMax, muonMaxEjection] using this)⟩
+    · exact ⟨le_trans (by
+        have := collisionVelocityMuonMax_bounds
+        linarith [this.1]) h₁, h₂⟩
+  · rintro ⟨h₀, h₂⟩
+    rcases le_total v collisionVelocityMuonMax with h | h
+    · exact Or.inl ⟨h₀, h⟩
+    · exact Or.inr ⟨h, h₂⟩
+
+/-- **Nesting.**  The tauonic window lies inside the muonic regime's output
+range: the second regime's inputs are the first regime's reachable outputs. -/
+theorem tauonic_window_nested_in_output :
+    tauonicRegime.window ⊆ Set.Ioc (0 : ℝ) muonicRegime.maxOutput := by
+  intro v hv
+  have h := regimes_tile
+  simp only [PropulsiveRegime.window, tauonicRegime, Set.mem_Icc] at hv
+  refine ⟨?_, ?_⟩
+  · have := collisionVelocityMuonMax_bounds
+    linarith [hv.1]
+  · rw [tauonicInputMax] at hv
+    exact hv.2
+
+/-- **The domain boundary.**  The boundary of the source's §8.2, `v₂ = 20 700 km/s`,
+is the tauonic input ceiling, and it is the muonic output ceiling unrounded. -/
+def domainBoundary : ℝ := tauonicRegime.inputUpper
+
+/-- The boundary is the muonic regime's maximum output. -/
+theorem domainBoundary_eq_muonic_output : domainBoundary = muonicRegime.maxOutput := rfl
+
+/-- The boundary is the muonic ejection ceiling, hence `≈ 20 700 km/s`. -/
+theorem domainBoundary_km_per_s :
+    (2.068 : ℝ) * 10 ^ 4 ≤ domainBoundary / 1000 ∧
+      domainBoundary / 1000 ≤ (2.07 : ℝ) * 10 ^ 4 := by
+  simpa [domainBoundary, tauonicRegime, tauonicInputMax] using muonMaxEjection_km_per_s
+
+/-- The boundary itself is subluminal; it is the tauonic *output* that exceeds
+`c`, not the input ceiling that defines the hand-off. -/
+theorem domainBoundary_subluminal : domainBoundary < speedOfLight := by
+  simpa [domainBoundary, tauonicRegime, tauonicInputMax] using muonMaxEjection_subluminal
+
+/-- **Continuity of the two-regime structure**, collected in one statement: the
+windows are adjacent, the chain closes on the muonic output ceiling, they tile
+an interval, and the law is continuous in the collision velocity throughout. -/
+theorem regime_continuity :
+    muonicRegime.inputUpper = tauonicRegime.inputLower ∧
+      tauonicRegime.inputUpper = muonicRegime.maxOutput ∧
+      muonicRegime.window ∪ tauonicRegime.window
+        = Set.Icc (0 : ℝ) tauonicRegime.inputUpper ∧
+      Continuous (fun v₂ : ℝ =>
+        generalisedVelocity generalizedDimension v₂ muonicRegime.massRatio) ∧
+      Continuous (fun v₂ : ℝ =>
+        generalisedVelocity generalizedDimension v₂ tauonicRegime.massRatio) :=
+  ⟨windows_adjacent, chain_closes, regimes_tile,
+    muonicRegime.continuous_maxOutput, tauonicRegime.continuous_maxOutput⟩
+
+/-! ## Thrust: what the framework fixes and what it does not
+
+The kinematics fix the exhaust velocity.  Momentum and energy balance then fix
+the thrust-to-power ratio exactly, `T/P = 2/v_e`, and nothing else: the absolute
+thrust is set by mass flow and power, which are engineering parameters.  This is
+the precise sense in which "empirical thrust optimisation" is outside the
+framework, and it is proved rather than asserted.
+-/
+
+/-- A thruster design obeying the framework's momentum and energy balance. -/
+structure ThrusterDesign where
+  /-- Exhaust velocity of the propulsive particles, m/s. -/
+  exhaustVelocity : ℝ
+  exhaustVelocity_pos : 0 < exhaustVelocity
+  /-- Propellant mass flow, kg/s. -/
+  massFlow : ℝ
+  massFlow_pos : 0 < massFlow
+  /-- Thrust, N: momentum flux `ṁ·v_e`. -/
+  thrust : ℝ
+  thrust_eq : thrust = massFlow * exhaustVelocity
+  /-- Jet power, W: kinetic energy flux `½·ṁ·v_e²`. -/
+  jetPower : ℝ
+  power_eq : jetPower = massFlow * exhaustVelocity ^ 2 / 2
+
+/-- Vacuum exhaust velocity of the Raptor benchmark. -/
+def raptorExhaustVelocity : ℝ := raptorSpecificImpulse * standardGravity
+
+/-- **The thrust–power tradeoff.**  For any design, `T/P = 2/v_e` exactly.  High
+specific impulse costs thrust per watt, without exception. -/
+theorem thrust_to_power (d : ThrusterDesign) :
+    d.thrust / d.jetPower = 2 / d.exhaustVelocity := by
+  rw [d.thrust_eq, d.power_eq]
+  field_simp [ne_of_gt d.massFlow_pos, ne_of_gt d.exhaustVelocity_pos]
+
+/-- Thrust in terms of jet power and exhaust velocity. -/
+theorem thrust_eq_power (d : ThrusterDesign) :
+    d.thrust = 2 * d.jetPower / d.exhaustVelocity := by
+  rw [d.thrust_eq, d.power_eq]
+  field_simp [ne_of_gt d.exhaustVelocity_pos]
+
+/-- At the muonic ceiling, thrust per watt is `≈ 9.67 × 10⁻⁸ N/W`. -/
+theorem muonic_thrust_to_power_bounds (d : ThrusterDesign)
+    (h : d.exhaustVelocity = muonMaxEjection) :
+    (96 : ℝ) / 10 ^ 9 ≤ d.thrust / d.jetPower ∧
+      d.thrust / d.jetPower ≤ (97 : ℝ) / 10 ^ 9 := by
+  rw [thrust_to_power, h]
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection_bounds
+  constructor
+  · rw [le_div_iff₀ (by linarith)]
+    nlinarith
+  · rw [div_le_iff₀ (by linarith)]
+    nlinarith
+
+/-- The muonic exhaust velocity is `≈ 5.8 × 10³` times the Raptor exhaust
+velocity, so its thrust per watt is that many times *worse*: the specific-impulse
+gain and the thrust-per-watt loss are the same number. -/
+theorem muonic_thrust_to_power_shortfall :
+    (5.80 : ℝ) * 10 ^ 3 ≤ muonMaxEjection / raptorExhaustVelocity ∧
+      muonMaxEjection / raptorExhaustVelocity ≤ (5.82 : ℝ) * 10 ^ 3 := by
+  have hrv : raptorExhaustVelocity = 363 * 9.80665 := by
+    unfold raptorExhaustVelocity raptorSpecificImpulse standardGravity
+    norm_num
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection_bounds
+  constructor
+  · rw [hrv, le_div_iff₀ (by norm_num)]
+    nlinarith
+  · rw [hrv, div_le_iff₀ (by norm_num)]
+    nlinarith
+
+/-- **Thrust is not determined by the geometry.**  At the exhaust velocity the
+leptonic kinematics fix, any positive thrust is attainable by a suitable design:
+thrust is bought with mass flow and power, not with the velocity law. -/
+theorem thrust_not_determined (T : ℝ) (hT : 0 < T) :
+    ∃ d : ThrusterDesign, d.exhaustVelocity = muonMaxEjection ∧ d.thrust = T := by
+  have hv : 0 < muonMaxEjection := by
+    have := muonMaxEjection_bounds.1
+    linarith
+  refine ⟨{ exhaustVelocity := muonMaxEjection, exhaustVelocity_pos := hv,
+            massFlow := T / muonMaxEjection, massFlow_pos := div_pos hT hv,
+            thrust := T, thrust_eq := ?_, jetPower := T * muonMaxEjection / 2,
+            power_eq := ?_ }, rfl, rfl⟩
+  · field_simp
+  · field_simp
+
+/-- The engineering question the framework leaves open: at the exhaust velocity
+the geometry fixes, is there a design reaching a thrust target `T` within a
+power budget `P`?  Nothing in the geometric development decides it — see
+`thrust_not_determined` — so it is recorded, not proved. -/
+def ThrustOptimizationConjecture (T P : ℝ) : Prop :=
+  ∃ d : ThrusterDesign, d.exhaustVelocity = muonMaxEjection ∧ d.thrust = T ∧ d.jetPower ≤ P
+
+/-- The conjecture is not vacuous: a large enough power budget always suffices,
+because the thrust–power relation is a hyperbola and nothing else constrains it. -/
+theorem thrust_optimization_satisfiable (T : ℝ) (hT : 0 < T) :
+    ThrustOptimizationConjecture T (T * muonMaxEjection / 2 + 1) := by
+  obtain ⟨d, hv, hth⟩ := thrust_not_determined T hT
+  refine ⟨d, hv, hth, ?_⟩
+  have hvpos : 0 < muonMaxEjection := by
+    have := muonMaxEjection_bounds.1
+    linarith
+  have hmv : d.massFlow * d.exhaustVelocity = T := by
+    rw [← d.thrust_eq, hth]
+  rw [hv] at hmv
+  have hmf : d.massFlow = T / muonMaxEjection := by
+    rw [eq_div_iff (ne_of_gt hvpos)]
+    linarith
+  have hp := d.power_eq
+  rw [hv, hmf] at hp
+  rw [hp]
+  have hnorm : T / muonMaxEjection * muonMaxEjection ^ 2 / 2 = T * muonMaxEjection / 2 := by
+    field_simp
+  rw [hnorm]
+  linarith
+
+/-- Consequently the thrust question is *empirical*, not geometric: the
+framework fixes `v_e` and hence `T/P`, and leaves `(T, P)` free along that
+hyperbola.  This is the formal statement of "empirical thrust optimisations
+remain unproven". -/
+theorem thrust_optimization_is_empirical (T P : ℝ) (hT : 0 < T) (hP : 0 < P)
+    (hpower : T ≤ 2 * P / muonMaxEjection) :
+    ThrustOptimizationConjecture T P := by
+  have hv : 0 < muonMaxEjection := by
+    have := muonMaxEjection_bounds.1
+    linarith
+  refine ⟨{ exhaustVelocity := muonMaxEjection, exhaustVelocity_pos := hv,
+            massFlow := T / muonMaxEjection, massFlow_pos := div_pos hT hv,
+            thrust := T, thrust_eq := ?_, jetPower := T * muonMaxEjection / 2,
+            power_eq := ?_ }, rfl, rfl, ?_⟩
+  · field_simp
+  · field_simp
+  · have hp : T * muonMaxEjection ≤ 2 * P := by
+      have h' := hpower
+      rw [le_div_iff₀ hv] at h'
+      linarith
+    show T * muonMaxEjection / 2 ≤ P
+    rw [div_le_iff₀ (by norm_num : (0 : ℝ) < 2)]
+    linarith
+
+end
+
+end TheoreticalFramework

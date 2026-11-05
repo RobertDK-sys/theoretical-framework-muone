@@ -1,0 +1,10 @@
+name = "TheoreticalFramework"
+version = "0.1.0"
+defaultTargets = ["TheoreticalFramework"]
+
+[[require]]
+name = "mathlib"
+path = "/opt/mathlib"
+
+[[lean_lib]]
+name = "TheoreticalFramework"

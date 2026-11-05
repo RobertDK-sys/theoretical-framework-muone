@@ -1,0 +1,347 @@
+/-
+# TheoreticalFramework.Velocity
+
+Velocity scaling law, amplification factors and ejection velocities of the
+muonic and tauonic regimes, with every physical constant bounded rigorously.
+
+Units.  The framework states collision velocities in km/h and ejection
+velocities in m/s and km/s.  All conversions are proved; no numeric value is
+asserted without a surrounding interval, and each interval is closed by an exact
+computation of `vf²` together with `generalisedVelocity_bounds`.
+
+The two amplification factors of the framework are
+`(m_μ/m_e)^(n−2) = 207³ = 8 869 743 ≈ 8.9 × 10⁶` and
+`(m_τ/m_e)^(n−2) = 3477³ = 42 035 292 333 ≈ 4.2 × 10¹⁰`.
+
+The muonic ceiling reproduces the source's `≈ 20 700 km/s`.  The tauonic ceiling
+does *not* reproduce the source's `1.34 × 10¹² m/s`: the exact law gives
+`4.2403 × 10¹²`, and the discrepancy is localised in
+`source_tauon_max_velocity_underestimates` — the source evaluates
+`√(1.80 × 10²⁵)` as `1.34 × 10¹²` where it is `4.24 × 10¹²`, a `√10` slip in the
+decimal exponent.  The published figure is kept as a separate definition so that
+the two can be compared without either being hidden.
+-/
+import TheoreticalFramework.Dimensions
+
+namespace TheoreticalFramework
+
+noncomputable section
+
+/-! ## Units and framework constants -/
+
+/-- Kilometres per hour to metres per second, `1 km/h = 5/18 m/s`. -/
+def kmhToMs (v : ℝ) : ℝ := v * 5 / 18
+
+/-- The conversion agrees with the definitional `1000/3600`. -/
+theorem kmhToMs_eq (v : ℝ) : kmhToMs v = v * 1000 / 3600 := by
+  unfold kmhToMs
+  ring
+
+/-- Standard gravity, `g₀ = 9.80665 m/s²`, used to express specific impulse. -/
+def standardGravity : ℝ := 9.80665
+
+theorem standardGravity_pos : 0 < standardGravity := by
+  norm_num [standardGravity]
+
+/-- Speed of light in vacuum, m/s. -/
+def speedOfLight : ℝ := 299792458
+
+/-- Specific impulse, `Isp = v_e / g₀`, in seconds. -/
+def specificImpulse (ve : ℝ) : ℝ := ve / standardGravity
+
+/-- Vacuum specific impulse of a Raptor engine, seconds: the chemical benchmark
+of the source text. -/
+def raptorSpecificImpulse : ℝ := 363
+
+/-! ## Amplification factors -/
+
+/-- Upper end of the muonic input window, `v₂ = 25 000 km/h`. -/
+def collisionVelocityMuonMax : ℝ := kmhToMs 25000
+
+/-- The muonic input ceiling in m/s. -/
+theorem collisionVelocityMuonMax_eq : collisionVelocityMuonMax = 62500 / 9 := by
+  unfold collisionVelocityMuonMax kmhToMs
+  norm_num
+
+/-- `25 000 km/h ≈ 6 944 m/s`. -/
+theorem collisionVelocityMuonMax_bounds :
+    6944 ≤ collisionVelocityMuonMax ∧ collisionVelocityMuonMax ≤ 6945 := by
+  rw [collisionVelocityMuonMax_eq]
+  constructor <;> norm_num
+
+/-- Muonic amplification factor, `(m_μ/m_e)^(n−2)`. -/
+def muonAmplification : ℝ := massRatioMuon ^ velocityExponent
+
+/-- Tauonic amplification factor, `(m_τ/m_e)^(n−2)`. -/
+def tauonAmplification : ℝ := massRatioTauon ^ velocityExponent
+
+/-- `207³ = 8 869 743`. -/
+theorem muonAmplification_eq : muonAmplification = 8869743 := by
+  unfold muonAmplification velocityExponent generalizedDimension casimirMassExponent
+  norm_num [massRatioMuon]
+
+/-- `3477³ = 42 035 292 333`. -/
+theorem tauonAmplification_eq : tauonAmplification = 42035292333 := by
+  unfold tauonAmplification velocityExponent generalizedDimension casimirMassExponent
+  norm_num [massRatioTauon]
+
+/-- The muonic amplification is `(207)³ ≈ 8.9 × 10⁶`. -/
+theorem muonAmplification_order :
+    (8.8 : ℝ) * 10 ^ 6 ≤ muonAmplification ∧ muonAmplification ≤ (8.9 : ℝ) * 10 ^ 6 := by
+  rw [muonAmplification_eq]
+  constructor <;> norm_num
+
+/-- The tauonic amplification is `(3477)³ ≈ 4.2 × 10¹⁰`. -/
+theorem tauonAmplification_order :
+    (4.2 : ℝ) * 10 ^ 10 ≤ tauonAmplification ∧ tauonAmplification ≤ (4.21 : ℝ) * 10 ^ 10 := by
+  rw [tauonAmplification_eq]
+  constructor <;> norm_num
+
+/-- The tauonic amplification exceeds the muonic one by `(3477/207)³ ≈ 4.74 × 10³`. -/
+theorem tauon_over_muon_amplification :
+    (4.73 : ℝ) * 10 ^ 3 ≤ tauonAmplification / muonAmplification ∧
+      tauonAmplification / muonAmplification ≤ (4.74 : ℝ) * 10 ^ 3 := by
+  rw [tauonAmplification_eq, muonAmplification_eq]
+  constructor
+  · rw [le_div_iff₀ (by norm_num)]
+    norm_num
+  · rw [div_le_iff₀ (by norm_num)]
+    norm_num
+
+/-! ## Muonic regime: ejection velocity -/
+
+/-- Maximum ejection velocity of the muonic regime, at `v₂ = 25 000 km/h`. -/
+def muonMaxEjection : ℝ :=
+  generalisedVelocity generalizedDimension collisionVelocityMuonMax massRatioMuon
+
+/-- The ejection velocity obeys the law: `vf² = v₂² · 207³`. -/
+theorem muonMaxEjection_sq :
+    muonMaxEjection ^ 2 = collisionVelocityMuonMax ^ 2 * massRatioMuon ^ 3 := by
+  unfold muonMaxEjection
+  exact velocity_law_five _ _ massRatioMuon_pos.le
+
+/-- `vf ≈ 2.06820 × 10⁷ m/s` for the muonic ceiling. -/
+theorem muonMaxEjection_bounds :
+    (2.06820 : ℝ) * 10 ^ 7 ≤ muonMaxEjection ∧
+      muonMaxEjection ≤ (2.06821 : ℝ) * 10 ^ 7 := by
+  have h₁ : ((2.06820 : ℝ) * 10 ^ 7) ^ 2 ≤
+      collisionVelocityMuonMax ^ 2 * massRatioMuon ^ 3 := by
+    rw [collisionVelocityMuonMax_eq]
+    norm_num [massRatioMuon]
+  have h₂ : collisionVelocityMuonMax ^ 2 * massRatioMuon ^ 3 ≤
+      ((2.06821 : ℝ) * 10 ^ 7) ^ 2 := by
+    rw [collisionVelocityMuonMax_eq]
+    norm_num [massRatioMuon]
+  have := generalisedVelocity_bounds (n := generalizedDimension)
+    (v₂ := collisionVelocityMuonMax) (r := massRatioMuon)
+    (a := (2.06820 : ℝ) * 10 ^ 7) (b := (2.06821 : ℝ) * 10 ^ 7)
+    (show (0 : ℝ) ≤ (2.06821 : ℝ) * 10 ^ 7 by norm_num) h₁ h₂
+  simpa [muonMaxEjection] using this
+
+/-- The source's `≈ 20 700 km/s`, proved as an interval in km/s. -/
+theorem muonMaxEjection_km_per_s :
+    (2.068 : ℝ) * 10 ^ 4 ≤ muonMaxEjection / 1000 ∧
+      muonMaxEjection / 1000 ≤ (2.07 : ℝ) * 10 ^ 4 := by
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection_bounds
+  constructor
+  · rw [le_div_iff₀ (by norm_num)]
+    nlinarith
+  · rw [div_le_iff₀ (by norm_num)]
+    nlinarith
+
+/-- The muonic ejection velocity is subluminal: the muonic regime is compatible
+with ordinary special relativity. -/
+theorem muonMaxEjection_subluminal : muonMaxEjection < speedOfLight := by
+  have := muonMaxEjection_bounds.2
+  unfold speedOfLight
+  linarith
+
+/-- The muonic input window is subluminal as well. -/
+theorem collisionVelocityMuonMax_subluminal : collisionVelocityMuonMax < speedOfLight := by
+  have := collisionVelocityMuonMax_bounds.2
+  unfold speedOfLight
+  linarith
+
+/-- Specific impulse of the muonic ceiling, `Isp = v_e/g₀ ≈ 2.109 × 10⁶ s`. -/
+theorem muonSpecificImpulse_bounds :
+    (2.108 : ℝ) * 10 ^ 6 ≤ specificImpulse muonMaxEjection ∧
+      specificImpulse muonMaxEjection ≤ (2.109 : ℝ) * 10 ^ 6 := by
+  obtain ⟨h₁, h₂⟩ := muonMaxEjection_bounds
+  have hg := standardGravity_pos
+  constructor
+  · rw [specificImpulse, le_div_iff₀ hg]
+    unfold standardGravity at hg ⊢
+    nlinarith
+  · rw [specificImpulse, div_le_iff₀ hg]
+    unfold standardGravity at hg ⊢
+    nlinarith
+
+/-- The muonic impulse exceeds the Raptor benchmark by a factor of about
+`5.8 × 10³`, i.e. "roughly 6 000 times" as the source states. -/
+theorem muonImpulse_over_raptor :
+    (5.80 : ℝ) * 10 ^ 3 ≤ specificImpulse muonMaxEjection / raptorSpecificImpulse ∧
+      specificImpulse muonMaxEjection / raptorSpecificImpulse ≤ (5.82 : ℝ) * 10 ^ 3 := by
+  obtain ⟨h₁, h₂⟩ := muonSpecificImpulse_bounds
+  unfold raptorSpecificImpulse
+  constructor
+  · rw [le_div_iff₀ (by norm_num)]
+    nlinarith
+  · rw [div_le_iff₀ (by norm_num)]
+    nlinarith
+
+/-! ## Tauonic regime: ejection velocity -/
+
+/-- Input ceiling of the tauonic regime: the muonic regime's maximum ejection
+velocity, `≈ 20 682 km/s`.  Taking the unrounded value is what makes the two
+regimes exactly continuous. -/
+def tauonicInputMax : ℝ := muonMaxEjection
+
+/-- Maximum ejection velocity of the tauonic regime, at `v₂ = tauonicInputMax`. -/
+def tauonMaxEjection : ℝ :=
+  generalisedVelocity generalizedDimension tauonicInputMax massRatioTauon
+
+/-- The tauonic ejection velocity obeys the law: `vf² = v₂² · 3477³`. -/
+theorem tauonMaxEjection_sq :
+    tauonMaxEjection ^ 2 = tauonicInputMax ^ 2 * massRatioTauon ^ 3 := by
+  unfold tauonMaxEjection
+  exact velocity_law_five _ _ massRatioTauon_pos.le
+
+/-- `vf ≈ 4.2403 × 10¹² m/s` for the tauonic ceiling. -/
+theorem tauonMaxEjection_bounds :
+    (4.2403 : ℝ) * 10 ^ 12 ≤ tauonMaxEjection ∧
+      tauonMaxEjection ≤ (4.2404 : ℝ) * 10 ^ 12 := by
+  have hb := muonMaxEjection_bounds
+  have hsq₁ : ((2.06820 : ℝ) * 10 ^ 7) ^ 2 ≤ tauonicInputMax ^ 2 := by
+    rw [tauonicInputMax]
+    exact pow_le_pow_left₀ (show (0 : ℝ) ≤ (2.06820 : ℝ) * 10 ^ 7 by norm_num) hb.1 2
+  have hsq₂ : tauonicInputMax ^ 2 ≤ ((2.06821 : ℝ) * 10 ^ 7) ^ 2 := by
+    rw [tauonicInputMax]
+    exact pow_le_pow_left₀ (by linarith [hb.1] : (0 : ℝ) ≤ muonMaxEjection) hb.2 2
+  have hp₁ := mul_le_mul_of_nonneg_right hsq₁
+    (show (0 : ℝ) ≤ massRatioTauon ^ 3 by norm_num [massRatioTauon])
+  have hp₂ := mul_le_mul_of_nonneg_right hsq₂
+    (show (0 : ℝ) ≤ massRatioTauon ^ 3 by norm_num [massRatioTauon])
+  have h₁ : ((4.2403 : ℝ) * 10 ^ 12) ^ 2 ≤ tauonicInputMax ^ 2 * massRatioTauon ^ 3 := by
+    refine le_trans ?_ hp₁
+    norm_num [massRatioTauon]
+  have h₂ : tauonicInputMax ^ 2 * massRatioTauon ^ 3 ≤ ((4.2404 : ℝ) * 10 ^ 12) ^ 2 := by
+    refine le_trans hp₂ ?_
+    norm_num [massRatioTauon]
+  have := generalisedVelocity_bounds (n := generalizedDimension)
+    (v₂ := tauonicInputMax) (r := massRatioTauon)
+    (a := (4.2403 : ℝ) * 10 ^ 12) (b := (4.2404 : ℝ) * 10 ^ 12)
+    (show (0 : ℝ) ≤ (4.2404 : ℝ) * 10 ^ 12 by norm_num) h₁ h₂
+  simpa [tauonMaxEjection] using this
+
+/-- The tauonic ceiling is superluminal: the framework's rejection of the
+Lorentz factor is not optional decoration, it is what its own numbers require. -/
+theorem tauonMaxEjection_superluminal : speedOfLight < tauonMaxEjection := by
+  have := tauonMaxEjection_bounds.1
+  unfold speedOfLight
+  linarith
+
+/-- The tauonic input window is subluminal; only the output exceeds `c`. -/
+theorem tauonicInputMax_subluminal : tauonicInputMax < speedOfLight := by
+  rw [tauonicInputMax]
+  exact muonMaxEjection_subluminal
+
+/-! ## The tauonic figures of the source text
+
+The source states `vf ≈ 1.34 × 10¹² m/s` at the tauonic ceiling, and
+`vf ≈ 9.0 × 10¹⁰ m/s` at a median input of `500 000 km/h`.  The exact law gives
+`4.2403 × 10¹²` and `2.8477 × 10¹⁰`.  In both cases the printed value is `√10`
+too small: the source's own intermediate `vf² = 1.80 × 10²⁵ m²/s²` is correct,
+but its square root is taken as `1.34 × 10¹²` instead of `4.24 × 10¹²`.  The
+discrepancy is proved here rather than asserted, and both values are kept so
+that a reader can see exactly where the two diverge.
+-/
+
+/-- The tauonic ceiling ejection velocity as printed in the source text. -/
+def sourceTauonMaxVelocity : ℝ := 1.34 * 10 ^ 12
+
+/-- The tauonic median ejection velocity as printed in the source text. -/
+def sourceTauonMedianVelocity : ℝ := 9.0 * 10 ^ 10
+
+/-- The source figure, squared, falls short of the law by a factor of `10.01`:
+the printed value is `√10` too small. -/
+theorem source_tauon_max_velocity_underestimates :
+    (10.01 : ℝ) ≤ tauonMaxEjection ^ 2 / sourceTauonMaxVelocity ^ 2 ∧
+      tauonMaxEjection ^ 2 / sourceTauonMaxVelocity ^ 2 ≤ (10.02 : ℝ) := by
+  obtain ⟨h₁, h₂⟩ := tauonMaxEjection_bounds
+  have hsq₁ : ((4.2403 : ℝ) * 10 ^ 12) ^ 2 ≤ tauonMaxEjection ^ 2 :=
+    pow_le_pow_left₀ (show (0 : ℝ) ≤ (4.2403 : ℝ) * 10 ^ 12 by norm_num) h₁ 2
+  have hsq₂ : tauonMaxEjection ^ 2 ≤ ((4.2404 : ℝ) * 10 ^ 12) ^ 2 :=
+    pow_le_pow_left₀ (by linarith : (0 : ℝ) ≤ tauonMaxEjection) h₂ 2
+  unfold sourceTauonMaxVelocity
+  constructor
+  · rw [le_div_iff₀ (by norm_num)]
+    nlinarith
+  · rw [div_le_iff₀ (by norm_num)]
+    nlinarith
+
+/-- Consequently the source figure underestimates the ejection velocity itself by
+the factor `√10 ≈ 3.164`. -/
+theorem source_tauon_max_velocity_factor :
+    (3.164 : ℝ) ≤ tauonMaxEjection / sourceTauonMaxVelocity ∧
+      tauonMaxEjection / sourceTauonMaxVelocity ≤ (3.165 : ℝ) := by
+  obtain ⟨h₁, h₂⟩ := tauonMaxEjection_bounds
+  unfold sourceTauonMaxVelocity
+  constructor
+  · rw [le_div_iff₀ (by norm_num)]
+    nlinarith
+  · rw [div_le_iff₀ (by norm_num)]
+    nlinarith
+
+/-- Tauonic ejection velocity at the entry velocity of the tauonic window. -/
+def tauonEntryEjection : ℝ :=
+  generalisedVelocity generalizedDimension collisionVelocityMuonMax massRatioTauon
+
+/-- `vf ≈ 1.4238 × 10⁹ m/s` at the tauonic entry velocity: the source's
+`1.42 × 10⁹` is correct here, because this `vf²` happens to carry an even
+decimal exponent. -/
+theorem tauonEntryEjection_bounds :
+    (1.4237 : ℝ) * 10 ^ 9 ≤ tauonEntryEjection ∧
+      tauonEntryEjection ≤ (1.4239 : ℝ) * 10 ^ 9 := by
+  have h₁ : ((1.4237 : ℝ) * 10 ^ 9) ^ 2 ≤
+      collisionVelocityMuonMax ^ 2 * massRatioTauon ^ 3 := by
+    rw [collisionVelocityMuonMax_eq]
+    norm_num [massRatioTauon]
+  have h₂ : collisionVelocityMuonMax ^ 2 * massRatioTauon ^ 3 ≤
+      ((1.4239 : ℝ) * 10 ^ 9) ^ 2 := by
+    rw [collisionVelocityMuonMax_eq]
+    norm_num [massRatioTauon]
+  have := generalisedVelocity_bounds (n := generalizedDimension)
+    (v₂ := collisionVelocityMuonMax) (r := massRatioTauon)
+    (a := (1.4237 : ℝ) * 10 ^ 9) (b := (1.4239 : ℝ) * 10 ^ 9)
+    (show (0 : ℝ) ≤ (1.4239 : ℝ) * 10 ^ 9 by norm_num) h₁ h₂
+  simpa [tauonEntryEjection] using this
+
+/-- Tauonic ejection velocity at a median input of `500 000 km/h`. -/
+def tauonMedianEjection : ℝ :=
+  generalisedVelocity generalizedDimension (kmhToMs 500000) massRatioTauon
+
+/-- `vf ≈ 2.8477 × 10¹⁰ m/s` at the median input — not the `9.0 × 10¹⁰` printed
+in the source, which carries the same `√10` slip. -/
+theorem tauonMedianEjection_bounds :
+    (2.8475 : ℝ) * 10 ^ 10 ≤ tauonMedianEjection ∧
+      tauonMedianEjection ≤ (2.8476 : ℝ) * 10 ^ 10 := by
+  have hvm : kmhToMs 500000 = 1250000 / 9 := by
+    unfold kmhToMs
+    norm_num
+  have h₁ : ((2.8475 : ℝ) * 10 ^ 10) ^ 2 ≤
+      kmhToMs 500000 ^ 2 * massRatioTauon ^ 3 := by
+    rw [hvm]
+    norm_num [massRatioTauon]
+  have h₂ : kmhToMs 500000 ^ 2 * massRatioTauon ^ 3 ≤
+      ((2.8476 : ℝ) * 10 ^ 10) ^ 2 := by
+    rw [hvm]
+    norm_num [massRatioTauon]
+  have := generalisedVelocity_bounds (n := generalizedDimension)
+    (v₂ := kmhToMs 500000) (r := massRatioTauon)
+    (a := (2.8475 : ℝ) * 10 ^ 10) (b := (2.8476 : ℝ) * 10 ^ 10)
+    (show (0 : ℝ) ≤ (2.8476 : ℝ) * 10 ^ 10 by norm_num) h₁ h₂
+  simpa [tauonMedianEjection] using this
+
+end
+
+end TheoreticalFramework

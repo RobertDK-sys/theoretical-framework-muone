@@ -1,0 +1,705 @@
+import TheoreticalFramework
+
+--@@DECL TheoreticalFramework.le_of_sq_le_sq
+#check @TheoreticalFramework.le_of_sq_le_sq
+--@@AXIOMS TheoreticalFramework.le_of_sq_le_sq
+#print axioms TheoreticalFramework.le_of_sq_le_sq
+
+--@@DECL TheoreticalFramework.effRadius
+#check @TheoreticalFramework.effRadius
+--@@AXIOMS TheoreticalFramework.effRadius
+#print axioms TheoreticalFramework.effRadius
+
+--@@DECL TheoreticalFramework.effRadius_pos
+#check @TheoreticalFramework.effRadius_pos
+--@@AXIOMS TheoreticalFramework.effRadius_pos
+#print axioms TheoreticalFramework.effRadius_pos
+
+--@@DECL TheoreticalFramework.effRadius_div
+#check @TheoreticalFramework.effRadius_div
+--@@AXIOMS TheoreticalFramework.effRadius_div
+#print axioms TheoreticalFramework.effRadius_div
+
+--@@DECL TheoreticalFramework.effRadius_strictAnti
+#check @TheoreticalFramework.effRadius_strictAnti
+--@@AXIOMS TheoreticalFramework.effRadius_strictAnti
+#print axioms TheoreticalFramework.effRadius_strictAnti
+
+--@@DECL TheoreticalFramework.casimirEnergy
+#check @TheoreticalFramework.casimirEnergy
+--@@AXIOMS TheoreticalFramework.casimirEnergy
+#print axioms TheoreticalFramework.casimirEnergy
+
+--@@DECL TheoreticalFramework.casimirEnergy_eq_quintic
+#check @TheoreticalFramework.casimirEnergy_eq_quintic
+--@@AXIOMS TheoreticalFramework.casimirEnergy_eq_quintic
+#print axioms TheoreticalFramework.casimirEnergy_eq_quintic
+
+--@@DECL TheoreticalFramework.casimirEnergy_ratio
+#check @TheoreticalFramework.casimirEnergy_ratio
+--@@AXIOMS TheoreticalFramework.casimirEnergy_ratio
+#print axioms TheoreticalFramework.casimirEnergy_ratio
+
+--@@DECL TheoreticalFramework.casimirEnergy_ratio_radii
+#check @TheoreticalFramework.casimirEnergy_ratio_radii
+--@@AXIOMS TheoreticalFramework.casimirEnergy_ratio_radii
+#print axioms TheoreticalFramework.casimirEnergy_ratio_radii
+
+--@@DECL TheoreticalFramework.CasimirAnsatz
+#check @TheoreticalFramework.CasimirAnsatz
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.plateArea
+#check @TheoreticalFramework.CasimirAnsatz.plateArea
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.plateArea
+#print axioms TheoreticalFramework.CasimirAnsatz.plateArea
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.energy
+#check @TheoreticalFramework.CasimirAnsatz.energy
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.energy
+#print axioms TheoreticalFramework.CasimirAnsatz.energy
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.signedEnergy
+#check @TheoreticalFramework.CasimirAnsatz.signedEnergy
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.signedEnergy
+#print axioms TheoreticalFramework.CasimirAnsatz.signedEnergy
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.energy_eq_quintic
+#check @TheoreticalFramework.CasimirAnsatz.energy_eq_quintic
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.energy_eq_quintic
+#print axioms TheoreticalFramework.CasimirAnsatz.energy_eq_quintic
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.energy_ratio
+#check @TheoreticalFramework.CasimirAnsatz.energy_ratio
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.energy_ratio
+#print axioms TheoreticalFramework.CasimirAnsatz.energy_ratio
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.energy_ratio_parameter_free
+#check @TheoreticalFramework.CasimirAnsatz.energy_ratio_parameter_free
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.energy_ratio_parameter_free
+#print axioms TheoreticalFramework.CasimirAnsatz.energy_ratio_parameter_free
+
+--@@DECL TheoreticalFramework.CasimirAnsatz.signedEnergy_ratio
+#check @TheoreticalFramework.CasimirAnsatz.signedEnergy_ratio
+--@@AXIOMS TheoreticalFramework.CasimirAnsatz.signedEnergy_ratio
+#print axioms TheoreticalFramework.CasimirAnsatz.signedEnergy_ratio
+
+--@@DECL TheoreticalFramework.massElectronMeV
+#check @TheoreticalFramework.massElectronMeV
+--@@AXIOMS TheoreticalFramework.massElectronMeV
+#print axioms TheoreticalFramework.massElectronMeV
+
+--@@DECL TheoreticalFramework.massMuonMeV
+#check @TheoreticalFramework.massMuonMeV
+--@@AXIOMS TheoreticalFramework.massMuonMeV
+#print axioms TheoreticalFramework.massMuonMeV
+
+--@@DECL TheoreticalFramework.massTauonMeV
+#check @TheoreticalFramework.massTauonMeV
+--@@AXIOMS TheoreticalFramework.massTauonMeV
+#print axioms TheoreticalFramework.massTauonMeV
+
+--@@DECL TheoreticalFramework.massRatioMuon
+#check @TheoreticalFramework.massRatioMuon
+--@@AXIOMS TheoreticalFramework.massRatioMuon
+#print axioms TheoreticalFramework.massRatioMuon
+
+--@@DECL TheoreticalFramework.massRatioTauon
+#check @TheoreticalFramework.massRatioTauon
+--@@AXIOMS TheoreticalFramework.massRatioTauon
+#print axioms TheoreticalFramework.massRatioTauon
+
+--@@DECL TheoreticalFramework.massRatioMuon_pos
+#check @TheoreticalFramework.massRatioMuon_pos
+--@@AXIOMS TheoreticalFramework.massRatioMuon_pos
+#print axioms TheoreticalFramework.massRatioMuon_pos
+
+--@@DECL TheoreticalFramework.massRatioTauon_pos
+#check @TheoreticalFramework.massRatioTauon_pos
+--@@AXIOMS TheoreticalFramework.massRatioTauon_pos
+#print axioms TheoreticalFramework.massRatioTauon_pos
+
+--@@DECL TheoreticalFramework.massRatioMuon_consistent
+#check @TheoreticalFramework.massRatioMuon_consistent
+--@@AXIOMS TheoreticalFramework.massRatioMuon_consistent
+#print axioms TheoreticalFramework.massRatioMuon_consistent
+
+--@@DECL TheoreticalFramework.massRatioTauon_consistent
+#check @TheoreticalFramework.massRatioTauon_consistent
+--@@AXIOMS TheoreticalFramework.massRatioTauon_consistent
+#print axioms TheoreticalFramework.massRatioTauon_consistent
+
+--@@DECL TheoreticalFramework.casimir_amplification_muon_general
+#check @TheoreticalFramework.casimir_amplification_muon_general
+--@@AXIOMS TheoreticalFramework.casimir_amplification_muon_general
+#print axioms TheoreticalFramework.casimir_amplification_muon_general
+
+--@@DECL TheoreticalFramework.casimir_amplification_tauon_general
+#check @TheoreticalFramework.casimir_amplification_tauon_general
+--@@AXIOMS TheoreticalFramework.casimir_amplification_tauon_general
+#print axioms TheoreticalFramework.casimir_amplification_tauon_general
+
+--@@DECL TheoreticalFramework.massRatioMuon_pow_five
+#check @TheoreticalFramework.massRatioMuon_pow_five
+--@@AXIOMS TheoreticalFramework.massRatioMuon_pow_five
+#print axioms TheoreticalFramework.massRatioMuon_pow_five
+
+--@@DECL TheoreticalFramework.massRatioTauon_pow_five
+#check @TheoreticalFramework.massRatioTauon_pow_five
+--@@AXIOMS TheoreticalFramework.massRatioTauon_pow_five
+#print axioms TheoreticalFramework.massRatioTauon_pow_five
+
+--@@DECL TheoreticalFramework.casimir_amplification_muon_order
+#check @TheoreticalFramework.casimir_amplification_muon_order
+--@@AXIOMS TheoreticalFramework.casimir_amplification_muon_order
+#print axioms TheoreticalFramework.casimir_amplification_muon_order
+
+--@@DECL TheoreticalFramework.casimir_amplification_tauon_order
+#check @TheoreticalFramework.casimir_amplification_tauon_order
+--@@AXIOMS TheoreticalFramework.casimir_amplification_tauon_order
+#print axioms TheoreticalFramework.casimir_amplification_tauon_order
+
+--@@DECL TheoreticalFramework.casimir_amplification_tauon_over_muon
+#check @TheoreticalFramework.casimir_amplification_tauon_over_muon
+--@@AXIOMS TheoreticalFramework.casimir_amplification_tauon_over_muon
+#print axioms TheoreticalFramework.casimir_amplification_tauon_over_muon
+
+--@@DECL TheoreticalFramework.casimir_amplification_hierarchy
+#check @TheoreticalFramework.casimir_amplification_hierarchy
+--@@AXIOMS TheoreticalFramework.casimir_amplification_hierarchy
+#print axioms TheoreticalFramework.casimir_amplification_hierarchy
+
+--@@DECL TheoreticalFramework.fieldAmplificationSource
+#check @TheoreticalFramework.fieldAmplificationSource
+--@@AXIOMS TheoreticalFramework.fieldAmplificationSource
+#print axioms TheoreticalFramework.fieldAmplificationSource
+
+--@@DECL TheoreticalFramework.fieldAmplificationPlate
+#check @TheoreticalFramework.fieldAmplificationPlate
+--@@AXIOMS TheoreticalFramework.fieldAmplificationPlate
+#print axioms TheoreticalFramework.fieldAmplificationPlate
+
+--@@DECL TheoreticalFramework.field_amplification_source
+#check @TheoreticalFramework.field_amplification_source
+--@@AXIOMS TheoreticalFramework.field_amplification_source
+#print axioms TheoreticalFramework.field_amplification_source
+
+--@@DECL TheoreticalFramework.field_amplification_plate
+#check @TheoreticalFramework.field_amplification_plate
+--@@AXIOMS TheoreticalFramework.field_amplification_plate
+#print axioms TheoreticalFramework.field_amplification_plate
+
+--@@DECL TheoreticalFramework.field_amplification_muon_order
+#check @TheoreticalFramework.field_amplification_muon_order
+--@@AXIOMS TheoreticalFramework.field_amplification_muon_order
+#print axioms TheoreticalFramework.field_amplification_muon_order
+
+--@@DECL TheoreticalFramework.casimirMassExponent
+#check @TheoreticalFramework.casimirMassExponent
+--@@AXIOMS TheoreticalFramework.casimirMassExponent
+#print axioms TheoreticalFramework.casimirMassExponent
+
+--@@DECL TheoreticalFramework.generalizedDimension
+#check @TheoreticalFramework.generalizedDimension
+--@@AXIOMS TheoreticalFramework.generalizedDimension
+#print axioms TheoreticalFramework.generalizedDimension
+
+--@@DECL TheoreticalFramework.generalizedDimension_eq_five
+#check @TheoreticalFramework.generalizedDimension_eq_five
+--@@AXIOMS TheoreticalFramework.generalizedDimension_eq_five
+#print axioms TheoreticalFramework.generalizedDimension_eq_five
+
+--@@DECL TheoreticalFramework.structuralTerm
+#check @TheoreticalFramework.structuralTerm
+--@@AXIOMS TheoreticalFramework.structuralTerm
+#print axioms TheoreticalFramework.structuralTerm
+
+--@@DECL TheoreticalFramework.anomalousMoment
+#check @TheoreticalFramework.anomalousMoment
+--@@AXIOMS TheoreticalFramework.anomalousMoment
+#print axioms TheoreticalFramework.anomalousMoment
+
+--@@DECL TheoreticalFramework.structuralTerm_quintic
+#check @TheoreticalFramework.structuralTerm_quintic
+--@@AXIOMS TheoreticalFramework.structuralTerm_quintic
+#print axioms TheoreticalFramework.structuralTerm_quintic
+
+--@@DECL TheoreticalFramework.structuralTerm_ratio
+#check @TheoreticalFramework.structuralTerm_ratio
+--@@AXIOMS TheoreticalFramework.structuralTerm_ratio
+#print axioms TheoreticalFramework.structuralTerm_ratio
+
+--@@DECL TheoreticalFramework.velocityExponent
+#check @TheoreticalFramework.velocityExponent
+--@@AXIOMS TheoreticalFramework.velocityExponent
+#print axioms TheoreticalFramework.velocityExponent
+
+--@@DECL TheoreticalFramework.velocityExponent_eq_three
+#check @TheoreticalFramework.velocityExponent_eq_three
+--@@AXIOMS TheoreticalFramework.velocityExponent_eq_three
+#print axioms TheoreticalFramework.velocityExponent_eq_three
+
+--@@DECL TheoreticalFramework.velocityExponent_eq
+#check @TheoreticalFramework.velocityExponent_eq
+--@@AXIOMS TheoreticalFramework.velocityExponent_eq
+#print axioms TheoreticalFramework.velocityExponent_eq
+
+--@@DECL TheoreticalFramework.generalised_unit_exponents
+#check @TheoreticalFramework.generalised_unit_exponents
+--@@AXIOMS TheoreticalFramework.generalised_unit_exponents
+#print axioms TheoreticalFramework.generalised_unit_exponents
+
+--@@DECL TheoreticalFramework.time_exponent_balance
+#check @TheoreticalFramework.time_exponent_balance
+--@@AXIOMS TheoreticalFramework.time_exponent_balance
+#print axioms TheoreticalFramework.time_exponent_balance
+
+--@@DECL TheoreticalFramework.GeneralisedVelocityRelation
+#check @TheoreticalFramework.GeneralisedVelocityRelation
+--@@AXIOMS TheoreticalFramework.GeneralisedVelocityRelation
+#print axioms TheoreticalFramework.GeneralisedVelocityRelation
+
+--@@DECL TheoreticalFramework.scale_substitution
+#check @TheoreticalFramework.scale_substitution
+--@@AXIOMS TheoreticalFramework.scale_substitution
+#print axioms TheoreticalFramework.scale_substitution
+
+--@@DECL TheoreticalFramework.generalisedVelocity
+#check @TheoreticalFramework.generalisedVelocity
+--@@AXIOMS TheoreticalFramework.generalisedVelocity
+#print axioms TheoreticalFramework.generalisedVelocity
+
+--@@DECL TheoreticalFramework.velocity_law
+#check @TheoreticalFramework.velocity_law
+--@@AXIOMS TheoreticalFramework.velocity_law
+#print axioms TheoreticalFramework.velocity_law
+
+--@@DECL TheoreticalFramework.generalisedVelocity_eq_mul
+#check @TheoreticalFramework.generalisedVelocity_eq_mul
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_eq_mul
+#print axioms TheoreticalFramework.generalisedVelocity_eq_mul
+
+--@@DECL TheoreticalFramework.generalisedVelocity_nonneg
+#check @TheoreticalFramework.generalisedVelocity_nonneg
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_nonneg
+#print axioms TheoreticalFramework.generalisedVelocity_nonneg
+
+--@@DECL TheoreticalFramework.generalisedVelocity_bounds
+#check @TheoreticalFramework.generalisedVelocity_bounds
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_bounds
+#print axioms TheoreticalFramework.generalisedVelocity_bounds
+
+--@@DECL TheoreticalFramework.velocity_law_five
+#check @TheoreticalFramework.velocity_law_five
+--@@AXIOMS TheoreticalFramework.velocity_law_five
+#print axioms TheoreticalFramework.velocity_law_five
+
+--@@DECL TheoreticalFramework.generalisedVelocity_five_eq_mul
+#check @TheoreticalFramework.generalisedVelocity_five_eq_mul
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_five_eq_mul
+#print axioms TheoreticalFramework.generalisedVelocity_five_eq_mul
+
+--@@DECL TheoreticalFramework.generalisedVelocity_mono
+#check @TheoreticalFramework.generalisedVelocity_mono
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_mono
+#print axioms TheoreticalFramework.generalisedVelocity_mono
+
+--@@DECL TheoreticalFramework.generalisedVelocity_mono_v₂
+#check @TheoreticalFramework.generalisedVelocity_mono_v₂
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_mono_v₂
+#print axioms TheoreticalFramework.generalisedVelocity_mono_v₂
+
+--@@DECL TheoreticalFramework.generalisedVelocity_zero
+#check @TheoreticalFramework.generalisedVelocity_zero
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_zero
+#print axioms TheoreticalFramework.generalisedVelocity_zero
+
+--@@DECL TheoreticalFramework.kmhToMs
+#check @TheoreticalFramework.kmhToMs
+--@@AXIOMS TheoreticalFramework.kmhToMs
+#print axioms TheoreticalFramework.kmhToMs
+
+--@@DECL TheoreticalFramework.kmhToMs_eq
+#check @TheoreticalFramework.kmhToMs_eq
+--@@AXIOMS TheoreticalFramework.kmhToMs_eq
+#print axioms TheoreticalFramework.kmhToMs_eq
+
+--@@DECL TheoreticalFramework.standardGravity
+#check @TheoreticalFramework.standardGravity
+--@@AXIOMS TheoreticalFramework.standardGravity
+#print axioms TheoreticalFramework.standardGravity
+
+--@@DECL TheoreticalFramework.standardGravity_pos
+#check @TheoreticalFramework.standardGravity_pos
+--@@AXIOMS TheoreticalFramework.standardGravity_pos
+#print axioms TheoreticalFramework.standardGravity_pos
+
+--@@DECL TheoreticalFramework.speedOfLight
+#check @TheoreticalFramework.speedOfLight
+--@@AXIOMS TheoreticalFramework.speedOfLight
+#print axioms TheoreticalFramework.speedOfLight
+
+--@@DECL TheoreticalFramework.specificImpulse
+#check @TheoreticalFramework.specificImpulse
+--@@AXIOMS TheoreticalFramework.specificImpulse
+#print axioms TheoreticalFramework.specificImpulse
+
+--@@DECL TheoreticalFramework.raptorSpecificImpulse
+#check @TheoreticalFramework.raptorSpecificImpulse
+--@@AXIOMS TheoreticalFramework.raptorSpecificImpulse
+#print axioms TheoreticalFramework.raptorSpecificImpulse
+
+--@@DECL TheoreticalFramework.collisionVelocityMuonMax
+#check @TheoreticalFramework.collisionVelocityMuonMax
+--@@AXIOMS TheoreticalFramework.collisionVelocityMuonMax
+#print axioms TheoreticalFramework.collisionVelocityMuonMax
+
+--@@DECL TheoreticalFramework.collisionVelocityMuonMax_eq
+#check @TheoreticalFramework.collisionVelocityMuonMax_eq
+--@@AXIOMS TheoreticalFramework.collisionVelocityMuonMax_eq
+#print axioms TheoreticalFramework.collisionVelocityMuonMax_eq
+
+--@@DECL TheoreticalFramework.collisionVelocityMuonMax_bounds
+#check @TheoreticalFramework.collisionVelocityMuonMax_bounds
+--@@AXIOMS TheoreticalFramework.collisionVelocityMuonMax_bounds
+#print axioms TheoreticalFramework.collisionVelocityMuonMax_bounds
+
+--@@DECL TheoreticalFramework.muonAmplification
+#check @TheoreticalFramework.muonAmplification
+--@@AXIOMS TheoreticalFramework.muonAmplification
+#print axioms TheoreticalFramework.muonAmplification
+
+--@@DECL TheoreticalFramework.tauonAmplification
+#check @TheoreticalFramework.tauonAmplification
+--@@AXIOMS TheoreticalFramework.tauonAmplification
+#print axioms TheoreticalFramework.tauonAmplification
+
+--@@DECL TheoreticalFramework.muonAmplification_eq
+#check @TheoreticalFramework.muonAmplification_eq
+--@@AXIOMS TheoreticalFramework.muonAmplification_eq
+#print axioms TheoreticalFramework.muonAmplification_eq
+
+--@@DECL TheoreticalFramework.tauonAmplification_eq
+#check @TheoreticalFramework.tauonAmplification_eq
+--@@AXIOMS TheoreticalFramework.tauonAmplification_eq
+#print axioms TheoreticalFramework.tauonAmplification_eq
+
+--@@DECL TheoreticalFramework.muonAmplification_order
+#check @TheoreticalFramework.muonAmplification_order
+--@@AXIOMS TheoreticalFramework.muonAmplification_order
+#print axioms TheoreticalFramework.muonAmplification_order
+
+--@@DECL TheoreticalFramework.tauonAmplification_order
+#check @TheoreticalFramework.tauonAmplification_order
+--@@AXIOMS TheoreticalFramework.tauonAmplification_order
+#print axioms TheoreticalFramework.tauonAmplification_order
+
+--@@DECL TheoreticalFramework.tauon_over_muon_amplification
+#check @TheoreticalFramework.tauon_over_muon_amplification
+--@@AXIOMS TheoreticalFramework.tauon_over_muon_amplification
+#print axioms TheoreticalFramework.tauon_over_muon_amplification
+
+--@@DECL TheoreticalFramework.muonMaxEjection
+#check @TheoreticalFramework.muonMaxEjection
+--@@AXIOMS TheoreticalFramework.muonMaxEjection
+#print axioms TheoreticalFramework.muonMaxEjection
+
+--@@DECL TheoreticalFramework.muonMaxEjection_sq
+#check @TheoreticalFramework.muonMaxEjection_sq
+--@@AXIOMS TheoreticalFramework.muonMaxEjection_sq
+#print axioms TheoreticalFramework.muonMaxEjection_sq
+
+--@@DECL TheoreticalFramework.muonMaxEjection_bounds
+#check @TheoreticalFramework.muonMaxEjection_bounds
+--@@AXIOMS TheoreticalFramework.muonMaxEjection_bounds
+#print axioms TheoreticalFramework.muonMaxEjection_bounds
+
+--@@DECL TheoreticalFramework.muonMaxEjection_km_per_s
+#check @TheoreticalFramework.muonMaxEjection_km_per_s
+--@@AXIOMS TheoreticalFramework.muonMaxEjection_km_per_s
+#print axioms TheoreticalFramework.muonMaxEjection_km_per_s
+
+--@@DECL TheoreticalFramework.muonMaxEjection_subluminal
+#check @TheoreticalFramework.muonMaxEjection_subluminal
+--@@AXIOMS TheoreticalFramework.muonMaxEjection_subluminal
+#print axioms TheoreticalFramework.muonMaxEjection_subluminal
+
+--@@DECL TheoreticalFramework.collisionVelocityMuonMax_subluminal
+#check @TheoreticalFramework.collisionVelocityMuonMax_subluminal
+--@@AXIOMS TheoreticalFramework.collisionVelocityMuonMax_subluminal
+#print axioms TheoreticalFramework.collisionVelocityMuonMax_subluminal
+
+--@@DECL TheoreticalFramework.muonSpecificImpulse_bounds
+#check @TheoreticalFramework.muonSpecificImpulse_bounds
+--@@AXIOMS TheoreticalFramework.muonSpecificImpulse_bounds
+#print axioms TheoreticalFramework.muonSpecificImpulse_bounds
+
+--@@DECL TheoreticalFramework.muonImpulse_over_raptor
+#check @TheoreticalFramework.muonImpulse_over_raptor
+--@@AXIOMS TheoreticalFramework.muonImpulse_over_raptor
+#print axioms TheoreticalFramework.muonImpulse_over_raptor
+
+--@@DECL TheoreticalFramework.tauonicInputMax
+#check @TheoreticalFramework.tauonicInputMax
+--@@AXIOMS TheoreticalFramework.tauonicInputMax
+#print axioms TheoreticalFramework.tauonicInputMax
+
+--@@DECL TheoreticalFramework.tauonMaxEjection
+#check @TheoreticalFramework.tauonMaxEjection
+--@@AXIOMS TheoreticalFramework.tauonMaxEjection
+#print axioms TheoreticalFramework.tauonMaxEjection
+
+--@@DECL TheoreticalFramework.tauonMaxEjection_sq
+#check @TheoreticalFramework.tauonMaxEjection_sq
+--@@AXIOMS TheoreticalFramework.tauonMaxEjection_sq
+#print axioms TheoreticalFramework.tauonMaxEjection_sq
+
+--@@DECL TheoreticalFramework.tauonMaxEjection_bounds
+#check @TheoreticalFramework.tauonMaxEjection_bounds
+--@@AXIOMS TheoreticalFramework.tauonMaxEjection_bounds
+#print axioms TheoreticalFramework.tauonMaxEjection_bounds
+
+--@@DECL TheoreticalFramework.tauonMaxEjection_superluminal
+#check @TheoreticalFramework.tauonMaxEjection_superluminal
+--@@AXIOMS TheoreticalFramework.tauonMaxEjection_superluminal
+#print axioms TheoreticalFramework.tauonMaxEjection_superluminal
+
+--@@DECL TheoreticalFramework.tauonicInputMax_subluminal
+#check @TheoreticalFramework.tauonicInputMax_subluminal
+--@@AXIOMS TheoreticalFramework.tauonicInputMax_subluminal
+#print axioms TheoreticalFramework.tauonicInputMax_subluminal
+
+--@@DECL TheoreticalFramework.sourceTauonMaxVelocity
+#check @TheoreticalFramework.sourceTauonMaxVelocity
+--@@AXIOMS TheoreticalFramework.sourceTauonMaxVelocity
+#print axioms TheoreticalFramework.sourceTauonMaxVelocity
+
+--@@DECL TheoreticalFramework.sourceTauonMedianVelocity
+#check @TheoreticalFramework.sourceTauonMedianVelocity
+--@@AXIOMS TheoreticalFramework.sourceTauonMedianVelocity
+#print axioms TheoreticalFramework.sourceTauonMedianVelocity
+
+--@@DECL TheoreticalFramework.source_tauon_max_velocity_underestimates
+#check @TheoreticalFramework.source_tauon_max_velocity_underestimates
+--@@AXIOMS TheoreticalFramework.source_tauon_max_velocity_underestimates
+#print axioms TheoreticalFramework.source_tauon_max_velocity_underestimates
+
+--@@DECL TheoreticalFramework.source_tauon_max_velocity_factor
+#check @TheoreticalFramework.source_tauon_max_velocity_factor
+--@@AXIOMS TheoreticalFramework.source_tauon_max_velocity_factor
+#print axioms TheoreticalFramework.source_tauon_max_velocity_factor
+
+--@@DECL TheoreticalFramework.tauonEntryEjection
+#check @TheoreticalFramework.tauonEntryEjection
+--@@AXIOMS TheoreticalFramework.tauonEntryEjection
+#print axioms TheoreticalFramework.tauonEntryEjection
+
+--@@DECL TheoreticalFramework.tauonEntryEjection_bounds
+#check @TheoreticalFramework.tauonEntryEjection_bounds
+--@@AXIOMS TheoreticalFramework.tauonEntryEjection_bounds
+#print axioms TheoreticalFramework.tauonEntryEjection_bounds
+
+--@@DECL TheoreticalFramework.tauonMedianEjection
+#check @TheoreticalFramework.tauonMedianEjection
+--@@AXIOMS TheoreticalFramework.tauonMedianEjection
+#print axioms TheoreticalFramework.tauonMedianEjection
+
+--@@DECL TheoreticalFramework.tauonMedianEjection_bounds
+#check @TheoreticalFramework.tauonMedianEjection_bounds
+--@@AXIOMS TheoreticalFramework.tauonMedianEjection_bounds
+#print axioms TheoreticalFramework.tauonMedianEjection_bounds
+
+--@@DECL TheoreticalFramework.amplification_mul
+#check @TheoreticalFramework.amplification_mul
+--@@AXIOMS TheoreticalFramework.amplification_mul
+#print axioms TheoreticalFramework.amplification_mul
+
+--@@DECL TheoreticalFramework.amplification_strictMono
+#check @TheoreticalFramework.amplification_strictMono
+--@@AXIOMS TheoreticalFramework.amplification_strictMono
+#print axioms TheoreticalFramework.amplification_strictMono
+
+--@@DECL TheoreticalFramework.tauon_amplification_factors
+#check @TheoreticalFramework.tauon_amplification_factors
+--@@AXIOMS TheoreticalFramework.tauon_amplification_factors
+#print axioms TheoreticalFramework.tauon_amplification_factors
+
+--@@DECL TheoreticalFramework.generalisedVelocity_ge_input
+#check @TheoreticalFramework.generalisedVelocity_ge_input
+--@@AXIOMS TheoreticalFramework.generalisedVelocity_ge_input
+#print axioms TheoreticalFramework.generalisedVelocity_ge_input
+
+--@@DECL TheoreticalFramework.one_le_massRatioMuon
+#check @TheoreticalFramework.one_le_massRatioMuon
+--@@AXIOMS TheoreticalFramework.one_le_massRatioMuon
+#print axioms TheoreticalFramework.one_le_massRatioMuon
+
+--@@DECL TheoreticalFramework.one_le_massRatioTauon
+#check @TheoreticalFramework.one_le_massRatioTauon
+--@@AXIOMS TheoreticalFramework.one_le_massRatioTauon
+#print axioms TheoreticalFramework.one_le_massRatioTauon
+
+--@@DECL TheoreticalFramework.PropulsiveRegime
+#check @TheoreticalFramework.PropulsiveRegime
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.amplification
+#check @TheoreticalFramework.PropulsiveRegime.amplification
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.amplification
+#print axioms TheoreticalFramework.PropulsiveRegime.amplification
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.maxOutput
+#check @TheoreticalFramework.PropulsiveRegime.maxOutput
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.maxOutput
+#print axioms TheoreticalFramework.PropulsiveRegime.maxOutput
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.window
+#check @TheoreticalFramework.PropulsiveRegime.window
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.window
+#print axioms TheoreticalFramework.PropulsiveRegime.window
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.maxOutput_sq
+#check @TheoreticalFramework.PropulsiveRegime.maxOutput_sq
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.maxOutput_sq
+#print axioms TheoreticalFramework.PropulsiveRegime.maxOutput_sq
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.inputUpper_le_maxOutput
+#check @TheoreticalFramework.PropulsiveRegime.inputUpper_le_maxOutput
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.inputUpper_le_maxOutput
+#print axioms TheoreticalFramework.PropulsiveRegime.inputUpper_le_maxOutput
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.continuous_maxOutput
+#check @TheoreticalFramework.PropulsiveRegime.continuous_maxOutput
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.continuous_maxOutput
+#print axioms TheoreticalFramework.PropulsiveRegime.continuous_maxOutput
+
+--@@DECL TheoreticalFramework.PropulsiveRegime.continuous_in_massRatio
+#check @TheoreticalFramework.PropulsiveRegime.continuous_in_massRatio
+--@@AXIOMS TheoreticalFramework.PropulsiveRegime.continuous_in_massRatio
+#print axioms TheoreticalFramework.PropulsiveRegime.continuous_in_massRatio
+
+--@@DECL TheoreticalFramework.muonicRegime
+#check @TheoreticalFramework.muonicRegime
+--@@AXIOMS TheoreticalFramework.muonicRegime
+#print axioms TheoreticalFramework.muonicRegime
+
+--@@DECL TheoreticalFramework.tauonicRegime
+#check @TheoreticalFramework.tauonicRegime
+--@@AXIOMS TheoreticalFramework.tauonicRegime
+#print axioms TheoreticalFramework.tauonicRegime
+
+--@@DECL TheoreticalFramework.muonicRegime_amplification
+#check @TheoreticalFramework.muonicRegime_amplification
+--@@AXIOMS TheoreticalFramework.muonicRegime_amplification
+#print axioms TheoreticalFramework.muonicRegime_amplification
+
+--@@DECL TheoreticalFramework.tauonicRegime_amplification
+#check @TheoreticalFramework.tauonicRegime_amplification
+--@@AXIOMS TheoreticalFramework.tauonicRegime_amplification
+#print axioms TheoreticalFramework.tauonicRegime_amplification
+
+--@@DECL TheoreticalFramework.regimes_strictly_ordered
+#check @TheoreticalFramework.regimes_strictly_ordered
+--@@AXIOMS TheoreticalFramework.regimes_strictly_ordered
+#print axioms TheoreticalFramework.regimes_strictly_ordered
+
+--@@DECL TheoreticalFramework.muonicRegime_maxOutput
+#check @TheoreticalFramework.muonicRegime_maxOutput
+--@@AXIOMS TheoreticalFramework.muonicRegime_maxOutput
+#print axioms TheoreticalFramework.muonicRegime_maxOutput
+
+--@@DECL TheoreticalFramework.tauonicRegime_maxOutput
+#check @TheoreticalFramework.tauonicRegime_maxOutput
+--@@AXIOMS TheoreticalFramework.tauonicRegime_maxOutput
+#print axioms TheoreticalFramework.tauonicRegime_maxOutput
+
+--@@DECL TheoreticalFramework.windows_adjacent
+#check @TheoreticalFramework.windows_adjacent
+--@@AXIOMS TheoreticalFramework.windows_adjacent
+#print axioms TheoreticalFramework.windows_adjacent
+
+--@@DECL TheoreticalFramework.chain_closes
+#check @TheoreticalFramework.chain_closes
+--@@AXIOMS TheoreticalFramework.chain_closes
+#print axioms TheoreticalFramework.chain_closes
+
+--@@DECL TheoreticalFramework.regimes_tile
+#check @TheoreticalFramework.regimes_tile
+--@@AXIOMS TheoreticalFramework.regimes_tile
+#print axioms TheoreticalFramework.regimes_tile
+
+--@@DECL TheoreticalFramework.tauonic_window_nested_in_output
+#check @TheoreticalFramework.tauonic_window_nested_in_output
+--@@AXIOMS TheoreticalFramework.tauonic_window_nested_in_output
+#print axioms TheoreticalFramework.tauonic_window_nested_in_output
+
+--@@DECL TheoreticalFramework.domainBoundary
+#check @TheoreticalFramework.domainBoundary
+--@@AXIOMS TheoreticalFramework.domainBoundary
+#print axioms TheoreticalFramework.domainBoundary
+
+--@@DECL TheoreticalFramework.domainBoundary_eq_muonic_output
+#check @TheoreticalFramework.domainBoundary_eq_muonic_output
+--@@AXIOMS TheoreticalFramework.domainBoundary_eq_muonic_output
+#print axioms TheoreticalFramework.domainBoundary_eq_muonic_output
+
+--@@DECL TheoreticalFramework.domainBoundary_km_per_s
+#check @TheoreticalFramework.domainBoundary_km_per_s
+--@@AXIOMS TheoreticalFramework.domainBoundary_km_per_s
+#print axioms TheoreticalFramework.domainBoundary_km_per_s
+
+--@@DECL TheoreticalFramework.domainBoundary_subluminal
+#check @TheoreticalFramework.domainBoundary_subluminal
+--@@AXIOMS TheoreticalFramework.domainBoundary_subluminal
+#print axioms TheoreticalFramework.domainBoundary_subluminal
+
+--@@DECL TheoreticalFramework.regime_continuity
+#check @TheoreticalFramework.regime_continuity
+--@@AXIOMS TheoreticalFramework.regime_continuity
+#print axioms TheoreticalFramework.regime_continuity
+
+--@@DECL TheoreticalFramework.ThrusterDesign
+#check @TheoreticalFramework.ThrusterDesign
+
+--@@DECL TheoreticalFramework.raptorExhaustVelocity
+#check @TheoreticalFramework.raptorExhaustVelocity
+--@@AXIOMS TheoreticalFramework.raptorExhaustVelocity
+#print axioms TheoreticalFramework.raptorExhaustVelocity
+
+--@@DECL TheoreticalFramework.thrust_to_power
+#check @TheoreticalFramework.thrust_to_power
+--@@AXIOMS TheoreticalFramework.thrust_to_power
+#print axioms TheoreticalFramework.thrust_to_power
+
+--@@DECL TheoreticalFramework.thrust_eq_power
+#check @TheoreticalFramework.thrust_eq_power
+--@@AXIOMS TheoreticalFramework.thrust_eq_power
+#print axioms TheoreticalFramework.thrust_eq_power
+
+--@@DECL TheoreticalFramework.muonic_thrust_to_power_bounds
+#check @TheoreticalFramework.muonic_thrust_to_power_bounds
+--@@AXIOMS TheoreticalFramework.muonic_thrust_to_power_bounds
+#print axioms TheoreticalFramework.muonic_thrust_to_power_bounds
+
+--@@DECL TheoreticalFramework.muonic_thrust_to_power_shortfall
+#check @TheoreticalFramework.muonic_thrust_to_power_shortfall
+--@@AXIOMS TheoreticalFramework.muonic_thrust_to_power_shortfall
+#print axioms TheoreticalFramework.muonic_thrust_to_power_shortfall
+
+--@@DECL TheoreticalFramework.thrust_not_determined
+#check @TheoreticalFramework.thrust_not_determined
+--@@AXIOMS TheoreticalFramework.thrust_not_determined
+#print axioms TheoreticalFramework.thrust_not_determined
+
+--@@DECL TheoreticalFramework.ThrustOptimizationConjecture
+#check @TheoreticalFramework.ThrustOptimizationConjecture
+--@@AXIOMS TheoreticalFramework.ThrustOptimizationConjecture
+#print axioms TheoreticalFramework.ThrustOptimizationConjecture
+
+--@@DECL TheoreticalFramework.thrust_optimization_satisfiable
+#check @TheoreticalFramework.thrust_optimization_satisfiable
+--@@AXIOMS TheoreticalFramework.thrust_optimization_satisfiable
+#print axioms TheoreticalFramework.thrust_optimization_satisfiable
+
+--@@DECL TheoreticalFramework.thrust_optimization_is_empirical
+#check @TheoreticalFramework.thrust_optimization_is_empirical
+--@@AXIOMS TheoreticalFramework.thrust_optimization_is_empirical
+#print axioms TheoreticalFramework.thrust_optimization_is_empirical

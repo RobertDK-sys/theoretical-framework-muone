@@ -1,0 +1,47 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand*\HyPL@Entry[1]{}
+\HyPL@Entry{0<</S/D>>}
+\@writefile{toc}{\contentsline {section}{Summary}{1}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Scope, and what is and is not proved}{1}{section.1}\protected@file@percent }
+\newlabel{sec:scope}{{1}{1}{Scope, and what is and is not proved}{section.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{(A) Proved mathematics.}{1}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{(B) Framework postulates.}{1}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{(C) Empirical claims.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{A tension internal to the source.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Core derivation: compactness and the fifth power}{2}{section.2}\protected@file@percent }
+\newlabel{sec:core}{{2}{2}{Core derivation: compactness and the fifth power}{section.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Casimir amplification: the numbers}{2}{section.3}\protected@file@percent }
+\newlabel{sec:casimir}{{3}{2}{Casimir amplification: the numbers}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}The generalized $n$-dimensional framework}{3}{section.4}\protected@file@percent }
+\newlabel{sec:dimensions}{{4}{3}{The generalized $n$-dimensional framework}{section.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Velocity scaling and amplification}{4}{section.5}\protected@file@percent }
+\newlabel{sec:velocity}{{5}{4}{Velocity scaling and amplification}{section.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}The two regimes, and what continuity actually says}{5}{section.6}\protected@file@percent }
+\newlabel{sec:regimes}{{6}{5}{The two regimes, and what continuity actually says}{section.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{Continuity, stated correctly.}{5}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Structural algebra.}{6}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Thrust: what the framework fixes, and the question it leaves open}{6}{section.7}\protected@file@percent }
+\newlabel{sec:thrust}{{7}{6}{Thrust: what the framework fixes, and the question it leaves open}{section.7}{}}
+\gdef \LT@i {\LT@entry 
+    {1}{159.50124pt}\LT@entry 
+    {1}{127.71509pt}\LT@entry 
+    {1}{94.65672pt}\LT@entry 
+    {1}{85.20839pt}\LT@entry 
+    {1}{29.61723pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Verification}{7}{section.8}\protected@file@percent }
+\newlabel{sec:verification}{{8}{7}{Verification}{section.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{1. Hygiene.}{7}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{2. Elaboration.}{7}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{3. Axiom audit.}{7}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{4. Independent recomputation.}{7}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{5. Provenance.}{8}{section*.15}\protected@file@percent }
+\gdef \LT@ii {\LT@entry 
+    {1}{176.03403pt}\LT@entry 
+    {1}{59.23447pt}\LT@entry 
+    {1}{213.82016pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Declaration index}{9}{appendix.A}\protected@file@percent }
+\newlabel{app:index}{{A}{9}{Declaration index}{appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}The verified sources}{16}{appendix.B}\protected@file@percent }
+\newlabel{app:sources}{{B}{16}{The verified sources}{appendix.B}{}}
+\gdef \@abspage@last{30}

@@ -1,0 +1,182 @@
+/-
+# TheoreticalFramework.Dimensions
+
+The generalized `n`-dimensional kinematic framework.
+
+The framework's generalized dimension is not a free parameter: it is read off the
+quintic mass dependence of the anomalous-moment contribution,
+
+  `a_ℓ = a_QED + a_EW+had(m_ℓ⁵) + a_str(m_ℓ, G_ℓ)`,
+
+whose structural term scales as `m⁵` (`casimirEnergy_eq_quintic`).  Setting
+`n = 5` makes the velocity exponent `n − 2 = 3`, which is the exponent that
+appears in the ejection-velocity law and, independently, in the equivalent
+magnetic-field amplification of `TheoreticalFramework.Leptons`.
+
+The velocity law itself is stated for arbitrary `n ≥ 2` and then specialised:
+
+  `vf² = v₂² · (m_ℓ/m₀)^(n−2)`.
+
+`vf` is defined as the non-negative root of that equation, and the paper's
+multiplicative form `vf = v₂ · √((m_ℓ/m₀)^(n−2))` is proved equivalent for
+`v₂ ≥ 0`.
+
+The generalized units of the framework, `[Cₙ] = [vₙ] = m^(2/n)/s`, enter only
+through exponent bookkeeping; that bookkeeping is proved in
+`generalised_unit_exponents` and `time_exponent_balance`.
+-/
+import TheoreticalFramework.Leptons
+
+namespace TheoreticalFramework
+
+noncomputable section
+
+/-! ## The generalized dimension -/
+
+/-- Exponent of the mass in the Casimir energy of the compactness ansatz. -/
+def casimirMassExponent : ℕ := 5
+
+/-- The generalized dimension, fixed by the quintic mass dependence: `n = 5`. -/
+def generalizedDimension : ℕ := casimirMassExponent
+
+/-- The generalized dimension is five. -/
+theorem generalizedDimension_eq_five : generalizedDimension = 5 := rfl
+
+/-! ## The anomalous moment whose quintic term fixes `n`
+
+The framework decomposes the anomalous moment of a lepton into a QED part, an
+electroweak-plus-hadronic part and a structural part, the last being quintic in
+the mass.  The quintic exponent is what fixes `n = 5`; it is not an independent
+input. -/
+
+/-- The structural part of the anomalous moment, `a_str = C · m^n`. -/
+def structuralTerm (C m : ℝ) : ℝ := C * m ^ generalizedDimension
+
+/-- The framework's decomposition `a_ℓ = a_QED + a_EW+had + a_str`. -/
+def anomalousMoment (aQED aEWHad C m : ℝ) : ℝ := aQED + aEWHad + structuralTerm C m
+
+/-- The structural term is quintic in the mass. -/
+theorem structuralTerm_quintic (C m : ℝ) : structuralTerm C m = C * (m : ℝ) ^ 5 := by
+  unfold structuralTerm
+  rw [generalizedDimension_eq_five]
+
+/-- The structural term amplifies between two leptons by the fifth power of the
+mass ratio: the same number as the Casimir amplification, which is the reason a
+single exponent serves both. -/
+theorem structuralTerm_ratio (C m₁ m₂ : ℝ) (hC : C ≠ 0) (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    structuralTerm C m₁ / structuralTerm C m₂ = (m₁ / m₂) ^ 5 := by
+  unfold structuralTerm
+  rw [generalizedDimension_eq_five, div_pow]
+  field_simp [hC, pow_ne_zero 5 h₁, pow_ne_zero 5 h₂]
+
+/-- Exponent of the mass ratio in the velocity law, `n − 2`. -/
+def velocityExponent : ℕ := generalizedDimension - 2
+
+/-- With `n = 5` the velocity law carries the cube of the mass ratio. -/
+theorem velocityExponent_eq_three : velocityExponent = 3 := rfl
+
+/-- The velocity exponent is `n − 2` for the framework's `n`. -/
+theorem velocityExponent_eq (n : ℕ) (hn : n = generalizedDimension) :
+    velocityExponent = n - 2 := by
+  subst hn
+  rfl
+
+/-! ## Generalized units
+
+The framework assigns to the generalized velocity the units `m^(2/n)/s`, so that
+the `n`-th power carries `m²/sⁿ`; multiplying by `dt₀^(n−2)` then carries
+`m²/s²`, the units of `v₂²`.  Only the exponents matter, and they are exact.
+-/
+
+/-- Unit bookkeeping of `[vₙ] = m^(2/n)/s`: the mass exponent balances to `2`. -/
+theorem generalised_unit_exponents (n : ℚ) (hn : n ≠ 0) : n * (2 / n) = 2 := by
+  field_simp
+
+/-- Unit bookkeeping of the time factor `dt₀^(n−2)`: the exponents close on `n`. -/
+theorem time_exponent_balance (n : ℚ) : (n - 2) + 2 = n := by
+  ring
+
+/-- The generalized-velocity relation `vₙⁿ · dt₀^(n−2) = v₂²` of the framework. -/
+def GeneralisedVelocityRelation (n : ℕ) (vn dt0 v2 : ℝ) : Prop :=
+  vn ^ n * dt0 ^ (n - 2) = v2 ^ 2
+
+/-- **Scale substitution.**  Replacing the time scale by `q·dt₀` multiplies the
+relation by `q^(n−2)`, which is the framework's substitution rule
+`vₙ·(q·dt₀)^(n−2) = v₂²·q^(n−2)`; the parameter `q = m_ℓ/m₀` is what links the
+muonic and tauonic regimes. -/
+theorem scale_substitution (n : ℕ) {vn dt0 q v2 : ℝ}
+    (h : vn * dt0 ^ (n - 2) = v2 ^ 2) :
+    vn * (q * dt0) ^ (n - 2) = v2 ^ 2 * q ^ (n - 2) := by
+  rw [mul_pow, ← h]
+  ring
+
+/-! ## The velocity law -/
+
+/-- Ejection velocity of particles produced in lepton–lepton collisions in the
+generalized framework: the non-negative root of `vf² = v₂²·r^(n−2)`, where `r`
+is the mass ratio `m_ℓ/m₀`. -/
+def generalisedVelocity (n : ℕ) (v₂ r : ℝ) : ℝ := Real.sqrt (v₂ ^ 2 * r ^ (n - 2))
+
+/-- **The velocity law**, for arbitrary generalized dimension `n`:
+`vf² = v₂² · (m_ℓ/m₀)^(n−2)`. -/
+theorem velocity_law (n : ℕ) (v₂ r : ℝ) (hr : 0 ≤ r) :
+    generalisedVelocity n v₂ r ^ 2 = v₂ ^ 2 * r ^ (n - 2) := by
+  unfold generalisedVelocity
+  exact Real.sq_sqrt (mul_nonneg (sq_nonneg v₂) (pow_nonneg hr _))
+
+/-- The paper's form of the law, `vf = v₂ · √((m_ℓ/m₀)^(n−2))`, agrees with the
+definition for non-negative input velocity. -/
+theorem generalisedVelocity_eq_mul (n : ℕ) {v₂ r : ℝ} (hv : 0 ≤ v₂) :
+    generalisedVelocity n v₂ r = v₂ * Real.sqrt (r ^ (n - 2)) := by
+  unfold generalisedVelocity
+  rw [Real.sqrt_mul (sq_nonneg v₂), Real.sqrt_sq hv]
+
+/-- Ejection velocities are non-negative. -/
+theorem generalisedVelocity_nonneg (n : ℕ) (v₂ r : ℝ) : 0 ≤ generalisedVelocity n v₂ r :=
+  Real.sqrt_nonneg _
+
+/-- Two-sided bounds on an ejection velocity, from exact bounds on `vf²`.
+This is the workhorse that turns a computed square into a velocity interval
+without any rounding step. -/
+theorem generalisedVelocity_bounds {n : ℕ} {v₂ r a b : ℝ} (hb : 0 ≤ b)
+    (h₁ : a ^ 2 ≤ v₂ ^ 2 * r ^ (n - 2)) (h₂ : v₂ ^ 2 * r ^ (n - 2) ≤ b ^ 2) :
+    a ≤ generalisedVelocity n v₂ r ∧ generalisedVelocity n v₂ r ≤ b := by
+  unfold generalisedVelocity
+  exact ⟨Real.le_sqrt_of_sq_le h₁, (Real.sqrt_le_left hb).2 h₂⟩
+
+/-- The velocity law at the framework's generalized dimension:
+`vf² = v₂² · (m_ℓ/m₀)³`. -/
+theorem velocity_law_five (v₂ r : ℝ) (hr : 0 ≤ r) :
+    generalisedVelocity generalizedDimension v₂ r ^ 2 = v₂ ^ 2 * r ^ 3 := by
+  rw [velocity_law generalizedDimension v₂ r hr, generalizedDimension_eq_five]
+
+/-- The law's explicit linear-in-`v₂` form at `n = 5`: `vf = v₂·√(r³)`. -/
+theorem generalisedVelocity_five_eq_mul {v₂ r : ℝ} (hv : 0 ≤ v₂) :
+    generalisedVelocity generalizedDimension v₂ r = v₂ * Real.sqrt (r ^ 3) := by
+  rw [generalisedVelocity_eq_mul generalizedDimension hv, generalizedDimension_eq_five]
+
+/-- The ejection velocity grows with the lepton mass ratio: heavier collision
+partners eject faster. -/
+theorem generalisedVelocity_mono {n : ℕ} {v₂ r₁ r₂ : ℝ} (hr₁ : 0 ≤ r₁) (h : r₁ ≤ r₂) :
+    generalisedVelocity n v₂ r₁ ≤ generalisedVelocity n v₂ r₂ := by
+  unfold generalisedVelocity
+  apply Real.sqrt_le_sqrt
+  exact mul_le_mul_of_nonneg_left (pow_le_pow_left₀ hr₁ h _) (sq_nonneg v₂)
+
+/-- The ejection velocity grows with the collision velocity. -/
+theorem generalisedVelocity_mono_v₂ {n : ℕ} {v₂ v₂' r : ℝ} (hv : 0 ≤ v₂) (h : v₂ ≤ v₂')
+    (hr : 0 ≤ r) :
+    generalisedVelocity n v₂ r ≤ generalisedVelocity n v₂' r := by
+  unfold generalisedVelocity
+  apply Real.sqrt_le_sqrt
+  exact mul_le_mul_of_nonneg_right (pow_le_pow_left₀ hv h 2) (pow_nonneg hr _)
+
+/-- The ejection velocity vanishes with the collision velocity: no collisions,
+no propulsion. -/
+theorem generalisedVelocity_zero (n : ℕ) (r : ℝ) : generalisedVelocity n 0 r = 0 := by
+  unfold generalisedVelocity
+  simp
+
+end
+
+end TheoreticalFramework

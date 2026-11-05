@@ -1,0 +1,350 @@
+{
+  "generated": "2026-11-05 13:39 UTC",
+  "lean": "4.33.1",
+  "modules": [
+    {
+      "module": "Basic",
+      "cached": false,
+      "seconds": 2.13,
+      "ok": true,
+      "diagnostics": ""
+    },
+    {
+      "module": "Leptons",
+      "cached": false,
+      "seconds": 2.12,
+      "ok": true,
+      "diagnostics": ""
+    },
+    {
+      "module": "Dimensions",
+      "cached": false,
+      "seconds": 2.08,
+      "ok": true,
+      "diagnostics": ""
+    },
+    {
+      "module": "Velocity",
+      "cached": false,
+      "seconds": 2.43,
+      "ok": true,
+      "diagnostics": ""
+    },
+    {
+      "module": "Regimes",
+      "cached": false,
+      "seconds": 2.42,
+      "ok": true,
+      "diagnostics": ""
+    },
+    {
+      "module": "TheoreticalFramework",
+      "cached": false,
+      "seconds": 1.88,
+      "ok": true,
+      "diagnostics": ""
+    }
+  ],
+  "declarations": 142,
+  "hygiene_problems": [],
+  "checks": [
+    {
+      "theorem": "collisionVelocityMuonMax_bounds",
+      "module": "Velocity",
+      "label": "muonic collision ceiling v\u2082, m/s",
+      "value": 6944.444444444444,
+      "interval": [
+        6944.0,
+        6945.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "casimir_amplification_muon_order",
+      "module": "Leptons",
+      "label": "casimir amplification (m_\u03bc/m_e)\u2075",
+      "value": 380059617807.0,
+      "interval": [
+        380000000000.0,
+        400000000000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "casimir_amplification_tauon_order",
+      "module": "Leptons",
+      "label": "casimir amplification (m_\u03c4/m_e)\u2075",
+      "value": 5.0818688568328115e+17,
+      "interval": [
+        5.08e+17,
+        5.0999999999999994e+17
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "casimir_amplification_tauon_over_muon",
+      "module": "Leptons",
+      "label": "(m_\u03c4/m_\u03bc)\u2075",
+      "value": 1337124.1296710093,
+      "interval": [
+        1300000.0,
+        1340000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonAmplification_order",
+      "module": "Velocity",
+      "label": "velocity amplification 207\u00b3",
+      "value": 8869743.0,
+      "interval": [
+        8800000.0,
+        8900000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "tauonAmplification_order",
+      "module": "Velocity",
+      "label": "velocity amplification 3477\u00b3",
+      "value": 42035292333.0,
+      "interval": [
+        42000000000.0,
+        42100000000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "tauon_over_muon_amplification",
+      "module": "Velocity",
+      "label": "3477\u00b3/207\u00b3",
+      "value": 4739.178162546536,
+      "interval": [
+        4730.0,
+        4740.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonMaxEjection_bounds",
+      "module": "Velocity",
+      "label": "muonic ejection ceiling, m/s",
+      "value": 20682023.444286104,
+      "interval": [
+        20682000.0,
+        20682100.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonMaxEjection_km_per_s",
+      "module": "Velocity",
+      "label": "muonic ejection ceiling, km/s",
+      "value": 20682.023444286104,
+      "interval": [
+        20680.0,
+        20700.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonSpecificImpulse_bounds",
+      "module": "Velocity",
+      "label": "muonic specific impulse, s",
+      "value": 2108979.4623328154,
+      "interval": [
+        2108000.0,
+        2109000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonImpulse_over_raptor",
+      "module": "Velocity",
+      "label": "Isp(muonic)/Isp(Raptor)",
+      "value": 5809.860777776351,
+      "interval": [
+        5800.0,
+        5820.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "tauonMaxEjection_bounds",
+      "module": "Velocity",
+      "label": "tauonic ejection ceiling, m/s",
+      "value": 4240333960324.361,
+      "interval": [
+        4240300000000.0005,
+        4240400000000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "tauonEntryEjection_bounds",
+      "module": "Velocity",
+      "label": "tauonic ejection at entry, m/s",
+      "value": 1423785428.572221,
+      "interval": [
+        1423700000.0,
+        1423900000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "tauonMedianEjection_bounds",
+      "module": "Velocity",
+      "label": "tauonic ejection at median input, m/s",
+      "value": 28475708571.444424,
+      "interval": [
+        28475000000.0,
+        28476000000.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "source_tauon_max_velocity_underestimates",
+      "module": "Velocity",
+      "label": "(verified/source)\u00b2 at the tauonic ceiling",
+      "value": 10.013606646847894,
+      "interval": [
+        10.01,
+        10.02
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "source_tauon_max_velocity_factor",
+      "module": "Velocity",
+      "label": "verified/source at the tauonic ceiling",
+      "value": 3.1644283286002692,
+      "interval": [
+        3.164,
+        3.165
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonic_thrust_to_power_bounds",
+      "module": "Regimes",
+      "label": "muonic thrust per watt, N/W",
+      "value": 9.670233695400568e-08,
+      "interval": [
+        9.6e-08,
+        9.7e-08
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "muonic_thrust_to_power_shortfall",
+      "module": "Regimes",
+      "label": "v_e(muonic)/v_e(Raptor)",
+      "value": 5809.860777776352,
+      "interval": [
+        5800.0,
+        5820.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "domainBoundary_km_per_s",
+      "module": "Regimes",
+      "label": "domain boundary, km/s",
+      "value": 20682.023444286104,
+      "interval": [
+        20680.0,
+        20700.0
+      ],
+      "expect": null,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "theorem": "massRatioMuon_pow_five",
+      "module": "Leptons",
+      "label": "207\u2075",
+      "value": null,
+      "interval": null,
+      "expect": "380059617807",
+      "ok": true,
+      "note": "exact"
+    },
+    {
+      "theorem": "massRatioTauon_pow_five",
+      "module": "Leptons",
+      "label": "3477\u2075",
+      "value": null,
+      "interval": null,
+      "expect": "508186885683281157",
+      "ok": true,
+      "note": "exact"
+    },
+    {
+      "theorem": "muonAmplification_eq",
+      "module": "Velocity",
+      "label": "207\u00b3",
+      "value": null,
+      "interval": null,
+      "expect": "8869743",
+      "ok": true,
+      "note": "exact"
+    },
+    {
+      "theorem": "tauonAmplification_eq",
+      "module": "Velocity",
+      "label": "3477\u00b3",
+      "value": null,
+      "interval": null,
+      "expect": "42035292333",
+      "ok": true,
+      "note": "exact"
+    },
+    {
+      "theorem": "collisionVelocityMuonMax_eq",
+      "module": "Velocity",
+      "label": "25 000 km/h in m/s",
+      "value": null,
+      "interval": null,
+      "expect": "62500 / 9",
+      "ok": true,
+      "note": "exact"
+    }
+  ],
+  "all_ok": true
+}

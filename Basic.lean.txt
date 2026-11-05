@@ -1,0 +1,163 @@
+/-
+# TheoreticalFramework.Basic
+
+Core derivations of the leptonic-compactness framework.
+
+The model under study attributes part of the anomalous magnetic moment of a
+massive lepton to an *internal geometric compactness*: a lepton of mass `m`
+carries an effective radius
+
+  `r_ℓ = κ / m`,
+
+with `κ` a fixed constant of the framework (dimensions of mass × length).  The
+internal geometry is modelled, following the source text, as a pair of plates
+whose separation is `d = r_ℓ` and whose area scales with the square of the mass,
+`S ∝ m²`.  The Casimir energy of such a cavity scales as
+
+  `E_C ∝ - S / d³`,
+
+hence as `- m² / r_ℓ³ = - m⁵ / κ³`.
+
+The mathematical content proved here is the scaling: the Casimir energy of a
+lepton is quintic in its mass, and therefore the amplification ratio between two
+leptons depends only on the ratio of their masses — not on `κ`, not on the area
+coefficient, and not on the overall Casimir constant.  That parameter-freedom is
+what lets the framework issue a numerical prediction, and it is the reason the
+derivation can be checked exactly rather than up to an unknown prefactor.
+
+The geometric *ansatz* itself (`S ∝ m²`, `d = r_ℓ`) is recorded as an explicit
+model assumption in `CasimirAnsatz`, not asserted as a derived fact.
+-/
+import Mathlib
+
+namespace TheoreticalFramework
+
+noncomputable section
+
+/-- Comparison of two non-negative reals through their squares.  This is the
+tool that turns an exactly computed `vf²` into a bound on `vf`. -/
+theorem le_of_sq_le_sq {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (h : a ^ 2 ≤ b ^ 2) : a ≤ b := by
+  have habs := sq_le_sq.mp h
+  rwa [abs_of_nonneg ha, abs_of_nonneg hb] at habs
+
+/-! ## Effective radius -/
+
+/-- Effective radius of a lepton, `r_ℓ = κ / m_ℓ`.
+
+`κ` has dimensions of mass × length.  The framework fixes `κ` by requiring that
+the electron's effective radius reproduces its classical radius, `r_e = 2.8 × 10⁻¹⁵ m`;
+no numerical value is needed for the scaling laws, which are `κ`-free. -/
+def effRadius (κ m : ℝ) : ℝ := κ / m
+
+/-- The effective radius of a positive-mass lepton is positive. -/
+theorem effRadius_pos {κ m : ℝ} (hκ : 0 < κ) (hm : 0 < m) : 0 < effRadius κ m :=
+  div_pos hκ hm
+
+/-- Effective radii are inversely proportional to mass: the *compaction* property
+that drives the whole framework. -/
+theorem effRadius_div {κ m₁ m₂ : ℝ} (hκ : κ ≠ 0) (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    effRadius κ m₁ / effRadius κ m₂ = m₂ / m₁ := by
+  unfold effRadius
+  field_simp
+
+/-- A heavier lepton is the more compact one. -/
+theorem effRadius_strictAnti {κ : ℝ} (hκ : 0 < κ) :
+    StrictAntiOn (effRadius κ) (Set.Ioi 0) := by
+  intro m₁ hm₁ m₂ hm₂ hlt
+  simp only [Set.mem_Ioi] at hm₁ hm₂
+  exact div_lt_div_of_pos_left hκ hm₁ hlt
+
+/-! ## Casimir energy of the internal geometry -/
+
+/-- Casimir energy of the internal two-plate geometry, in units where the
+prefactor `π²ℏc/720` is absorbed into the area coefficient.
+
+`E_C ∝ - S / d³` with `S` the plate area and `d = r_ℓ = κ/m` the plate
+separation.  The parallel-plate area ansatz `S ∝ m²` is the source's, and is
+recorded here explicitly by the `m^2` numerator. -/
+def casimirEnergy (κ m : ℝ) : ℝ := m ^ 2 / (effRadius κ m) ^ 3
+
+/-- **Quintic law.**  Under the inverse-radius ansatz the Casimir energy of a
+lepton is proportional to the fifth power of its mass. -/
+theorem casimirEnergy_eq_quintic {κ m : ℝ} (hκ : κ ≠ 0) (hm : m ≠ 0) :
+    casimirEnergy κ m = m ^ 5 / κ ^ 3 := by
+  unfold casimirEnergy effRadius
+  field_simp
+
+/-- **Amplification ratio.**  Between two leptons, the Casimir amplification is
+the fifth power of their mass ratio.  The constant `κ` cancels. -/
+theorem casimirEnergy_ratio {κ : ℝ} (hκ : κ ≠ 0) {m₁ m₂ : ℝ} (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    casimirEnergy κ m₁ / casimirEnergy κ m₂ = (m₁ / m₂) ^ 5 := by
+  rw [casimirEnergy_eq_quintic hκ h₁, casimirEnergy_eq_quintic hκ h₂]
+  field_simp
+
+/-- The same amplification, read geometrically: it is the fifth power of the
+*inverse* ratio of effective radii.  Compactness and vacuum coupling are two
+faces of one quantity. -/
+theorem casimirEnergy_ratio_radii {κ m₁ m₂ : ℝ} (hκ : κ ≠ 0) (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    casimirEnergy κ m₁ / casimirEnergy κ m₂ = (effRadius κ m₂ / effRadius κ m₁) ^ 5 := by
+  rw [casimirEnergy_ratio hκ h₁ h₂, effRadius_div hκ h₂ h₁]
+
+/-! ## The geometric ansatz as an explicit structure
+
+Isolating the ansatz makes two things visible: which quantities are free, and
+that the amplification ratio does not depend on any of them.
+-/
+
+/-- The geometric ansatz of the framework: an internal plate geometry whose
+separation is the effective radius and whose area scales as the square of the
+mass. -/
+structure CasimirAnsatz where
+  /-- Constant of the inverse-radius law, `r_ℓ = κ/m_ℓ`. -/
+  kappa : ℝ
+  kappa_pos : 0 < kappa
+  /-- Coefficient of the plate-area ansatz, `S = areaCoeff · m²`. -/
+  areaCoeff : ℝ
+  areaCoeff_pos : 0 < areaCoeff
+
+namespace CasimirAnsatz
+
+/-- Plate area of the internal geometry, `S = areaCoeff · m²`. -/
+def plateArea (A : CasimirAnsatz) (m : ℝ) : ℝ := A.areaCoeff * m ^ 2
+
+/-- Casimir energy of the ansatz, `E = -S/d³` up to a positive prefactor;
+its magnitude is `S/d³`. -/
+def energy (A : CasimirAnsatz) (m : ℝ) : ℝ := A.plateArea m / (effRadius A.kappa m) ^ 3
+
+/-- The signed (physical, attractive) Casimir energy, `E = -C · S/d³` with `C > 0`. -/
+def signedEnergy (A : CasimirAnsatz) (C m : ℝ) : ℝ := -C * A.energy m
+
+theorem energy_eq_quintic (A : CasimirAnsatz) {m : ℝ} (hm : m ≠ 0) :
+    A.energy m = A.areaCoeff * m ^ 5 / A.kappa ^ 3 := by
+  unfold energy plateArea effRadius
+  field_simp [A.kappa_pos.ne', A.areaCoeff_pos.ne',
+    mul_ne_zero A.areaCoeff_pos.ne' A.kappa_pos.ne']
+
+/-- The amplification ratio of the ansatz is the fifth power of the mass ratio. -/
+theorem energy_ratio (A : CasimirAnsatz) {m₁ m₂ : ℝ} (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    A.energy m₁ / A.energy m₂ = (m₁ / m₂) ^ 5 := by
+  rw [energy_eq_quintic A h₁, energy_eq_quintic A h₂]
+  field_simp [A.kappa_pos.ne', A.areaCoeff_pos.ne', pow_ne_zero 5 h₁, pow_ne_zero 5 h₂]
+
+/-- **Parameter-freedom of the prediction.**  Two arbitrary choices of the
+framework's free constants — `κ`, the area coefficient, even the overall Casimir
+prefactor — give the same amplification ratio.  The ratio `(m₁/m₂)⁵` is thus a
+genuine prediction of the ansatz rather than a fit. -/
+theorem energy_ratio_parameter_free (A A' : CasimirAnsatz) {m₁ m₂ : ℝ}
+    (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    A.energy m₁ / A.energy m₂ = A'.energy m₁ / A'.energy m₂ := by
+  rw [energy_ratio A h₁ h₂, energy_ratio A' h₁ h₂]
+
+/-- The sign convention of the Casimir effect does not affect the amplification:
+the physical energy is negative (attractive), and the ratio is unchanged. -/
+theorem signedEnergy_ratio (A : CasimirAnsatz) {C m₁ m₂ : ℝ} (hC : C ≠ 0)
+    (h₁ : m₁ ≠ 0) (h₂ : m₂ ≠ 0) :
+    A.signedEnergy C m₁ / A.signedEnergy C m₂ = (m₁ / m₂) ^ 5 := by
+  unfold signedEnergy
+  rw [neg_mul, neg_mul, neg_div_neg_eq, mul_div_mul_left _ _ hC, energy_ratio A h₁ h₂]
+
+end CasimirAnsatz
+
+end
+
+end TheoreticalFramework

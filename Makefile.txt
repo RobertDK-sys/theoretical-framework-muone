@@ -1,0 +1,42 @@
+# TheoreticalFramework — verification and report build
+#
+# Mathlib in this machine is prebuilt at /opt/mathlib and already on LEAN_PATH,
+# so the sources are checked by invoking `lean` directly, in dependency order,
+# into .lake/build/lib/lean/.  `lake build` would do the same thing but needs a
+# writable Mathlib build directory, which /opt/mathlib is not.
+
+LEAN      ?= lean
+PYTHON    ?= python3
+OLEANS    := .lake/build/lib/lean
+MODULES   := Basic Leptons Dimensions Velocity Regimes
+
+.PHONY: all verify paper clean check
+
+all: verify paper
+
+## Elaborate every module, then the umbrella.
+verify:
+	@mkdir -p $(OLEANS)/TheoreticalFramework
+	@set -e; for m in $(MODULES); do \
+	  echo "  lean TheoreticalFramework/$$m.lean"; \
+	  LEAN_PATH=$(OLEANS):$$LEAN_PATH $(LEAN) -o $(OLEANS)/TheoreticalFramework/$$m.olean \
+	    TheoreticalFramework/$$m.lean; \
+	done
+	@echo "  lean TheoreticalFramework.lean"
+	@LEAN_PATH=$(OLEANS):$$LEAN_PATH $(LEAN) -o $(OLEANS)/TheoreticalFramework.olean TheoreticalFramework.lean
+	@echo "verified: $(words $(MODULES)) modules"
+
+## Regenerate the formal report (re-runs verify, audits axioms, cross-checks
+## every constant) and rebuild paper/report.pdf.
+paper:
+	$(PYTHON) paper/tools/build_paper.py
+
+## Quick pass that reuses fresh .olean files.
+check:
+	$(PYTHON) paper/tools/build_paper.py --fast --no-pdf
+
+clean:
+	rm -rf .lake/build paper/build/report.aux paper/build/report.log \
+	       paper/build/report.fls paper/build/report.fdb_latexmk \
+	       paper/build/report.xdv paper/build/report.out
+	@echo "cleaned build products (sources and paper/report.pdf kept)"
